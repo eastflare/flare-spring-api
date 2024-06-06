@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    primary:
+      driver-class-name:aaaa
+      jdbc-url:aaaa
+      username:aaaa
+      password:aaaa
+
+# jasupt를 이용한 암호화 처리된 jdbc-url/ID/PW 예시, build.gradle 파일에 명시된 -Djasupt.encryptor.password= 갑과
+# 암/복호화 사이트 https://www.devglan.com/online-tools/jasupt-online-encryption-decryption를 이용하여 properties 값을 완성하세요
+
+logging:
+  config: classpath:config/default/logback-spring.yml
+
+dropzone:
+  upload-path: resources/static
+i18n:
+  message-file-path: "src/main/resources/locale"
+  upload-cache-on-start: true
+
+filter:
+  xss-block:
+    exclude-paths: /api/v1
