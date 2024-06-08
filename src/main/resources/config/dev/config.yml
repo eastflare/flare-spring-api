@@ -1,10 +1,10 @@
 spring:
   datasource:
     primary:
-      driver-class-name: org.mariadb.jdbc.Driver
-      jdbc-url: jdbc:mariadb://eastflare.iptime.org:3306/flare
-      username: flare
-      password: 1!DbFlareHome
+      driver-class-name:org.mariadb.jdbc.Driver
+      jdbc-url:jdbc:mariadb://eastflare.iptime.org:3306/flare
+      username:flare
+      password:1!DbFlareHome
 
 # jasupt를 이용한 암호화 처리된 jdbc-url/ID/PW 예시, build.gradle 파일에 명시된 -Djasupt.encryptor.password= 갑과
 # 암/복호화 사이트 https://www.devglan.com/online-tools/jasupt-online-encryption-decryption를 이용하여 properties 값을 완성하세요

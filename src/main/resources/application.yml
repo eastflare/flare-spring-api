@@ -1,3 +1,92 @@
 spring:
     application:
         name: flare-spring-api
+
+---
+spring:
+    profiles:
+        group:
+            default: common, default
+            dev: common, dev
+            prd: common, prd
+        active: default
+
+---
+spring:
+    config:
+        activate:
+            on-profile: common
+    servlet:
+        multipart:
+            max-file-size: 15MB
+            max-request-size : 15MB
+
+    mail:
+        host: eastflare.iptime.org\
+        port: 25
+        properties:
+            connectionTimeout: 5000
+            auth: false
+            starttls:
+                enable: false
+            ssl:
+                enable: false
+
+    thymeleaf:
+      prefix: classpath:/templates/
+      suffix: .html
+
+springdoc:
+    packages-to-scan: com.flare
+    default-consumes-media-type: application/json;charset=UTF-8
+    default-produces-media-type: application/json;charset=UTF-8
+    swagger-ui:
+        path: /
+        disable-swagger-default-url: true
+        display-request-duration: true
+        operations-sorter: alpha
+        tags-sorter: alpha
+
+server:
+    port: 7070
+    servlet:
+        context-path: /
+        encoding:
+            charset: UTF-8
+            enabled: true
+            force: true
+        session:
+            cookie:
+                name: JSESSIONID
+
+mybatis:
+    mapper-locations:
+        primary: classpath*:/sql/primary/**/*.xml
+    type-aliases-package: com.flare.**.model
+    configuration:
+        return-instance-for-empty-row: false
+
+---
+spring:
+    config:
+        activate:
+            on-profile: default
+        import:
+            - classpath:config/default/config.yml
+
+---
+spring:
+    config:
+        activate:
+            on-profile: dev
+        import:
+            - classpath:config/dev/config.yml
+
+---
+spring:
+    config:
+        activate:
+            on-profile: prd
+        import:
+            - classpath:config/dev/config.yml
+

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="true">
+    <appender name="default-console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <charset>UTF-8</charset>
+            <Pattern>%d %5p %c %m%n</Pattern>
+        </encoder>
+    </appender>
+    <appender name="simple-console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <charset>UTF-8</charset>
+            <Pattern>%d %5p %m%n</Pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.flare" level="debug" additivity="false">
+        <appender-ref ref="default-console"/>
+    </logger>
+    <logger name="jdbc.sqlonly" level="info">
+        <appender-ref ref="simple-console"/>
+    </logger>
+    <logger name="jdbc.resultsettable" level="info">
+        <appender-ref ref="simple-console"/>
+    </logger>
+    <root level="off">
+        <appender-ref ref="default-console"/>
+    </root>
+</configuration>
