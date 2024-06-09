@@ -3,6 +3,8 @@
 
 <mapper namespace="com.flare.rap.api.repository.ApiUrlRepository">
     <select id="selectApiUrls" resultType="com.flare.rap.api.model.ApiUrlResponseVO">
-        SELECT 'A' FROM DUAL
+        SELECT USER_ID AS API_ID
+             , USER_NM AS API_NM
+          FROM TB_FLARE_USER_M
     </select>
 </mapper>
