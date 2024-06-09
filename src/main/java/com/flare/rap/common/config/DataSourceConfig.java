@@ -1,6 +1,5 @@
 package com.flare.rap.common.config;
 
-import ch.qos.logback.core.net.SyslogOutputStream;
 import lombok.RequiredArgsConstructor;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -16,6 +15,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import javax.sql.DataSource;
 
@@ -42,13 +42,13 @@ public class DataSourceConfig {
     @ConfigurationProperties(prefix = "spring.datasource.primary")
     public DataSource primaryDataSource() { return DataSourceBuilder.create().build(); }
 
-    @Bean(name="primarySessionFactory")
     @Primary
+    @Bean(name="primarySessionFactory")
     public SqlSessionFactory primarySessionFactory(@Qualifier("primaryDataSource") DataSource primaryDataSource) throws Exception {
         SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
         sqlSessionFactoryBean.setDataSource(primaryDataSource);
         sqlSessionFactoryBean.setConfigLocation(applicationContext.getResource("classpath:config/mybatis.xml"));
-        sqlSessionFactoryBean.setMapperLocations(applicationContext.getResource(mapperLocations));
+        sqlSessionFactoryBean.setMapperLocations(applicationContext.getResources(mapperLocations));
         sqlSessionFactoryBean.setTypeAliasesPackage(typeAliasesPackage);
 
         return sqlSessionFactoryBean.getObject();
