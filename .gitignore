@@ -35,3 +35,21 @@ out/
 
 ### VS Code ###
 .vscode/
+bin/**
+
+### Eclipse files ###
+**/.project
+**/.classpath
+**/.settings/
+
+*.class
+
+### Package Files ###
+*.war
+*.ear
+
+### Gradle temporary files
+target/
+
+### Qclass Files ###
+/src/main/generated/
