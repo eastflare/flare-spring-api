@@ -25,9 +25,10 @@ pipeline {
                 sh './gradlew clean build'
             }
         }
-        stage('docker build and push') {
+        stage('Dockerize') {
             steps {
-                sh 'docker --help'
+                sh 'docker build -t ${IMAGE_NAME} -f Dockerfile .'
+                sh 'docker tag ${IMAGE_NAME} ${DOCKER_IMAGE}'
             }
         }
     }
