@@ -1,7 +1,7 @@
 pipeline {
     agent any
     tools {
-        dockerTool 'Jenkins-Docker'
+        docker 'Jenkins-Docker'
     }
 
     stages {
