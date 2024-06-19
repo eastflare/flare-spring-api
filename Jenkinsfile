@@ -26,7 +26,7 @@ pipeline {
         stage('docker build and push') {
             steps {
                 script {
-                    docker.withRegistry('https://registry.hub.docker.com', 'docker-account') {
+                    docker.withRegistry( ${DOCKER_REGISTRY}, 'docker-account') {
                         def image = docker.build("eastflare/flare-spring-api:v1")
                         image.push()
                     }
