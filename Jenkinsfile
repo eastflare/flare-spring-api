@@ -15,8 +15,7 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('https://registry.hub.docker.com', 'docker-account') {
-                        def image = docker.build("eastflare/flare-spring-api:v1")
-                        image.push()
+                        echo '도커 빌드'
                     }
                 }
             }
