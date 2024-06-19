@@ -33,11 +33,5 @@ pipeline {
                 }
             }
         }
-        stage('Dockerize') {
-            steps {
-                sh 'docker build -t ${IMAGE_NAME} -f Dockerfile .'
-                sh 'docker tag ${IMAGE_NAME} ${DOCKER_IMAGE}'
-            }
-        }
     }
 }
