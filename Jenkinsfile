@@ -23,6 +23,16 @@ pipeline {
                 sh './gradlew clean build'
             }
         }
+        stage('docker build and push') {
+            steps {
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', 'docker-account') {
+                        def image = docker.build("eastflare/flare-spring-api:v1")
+                        image.push()
+                    }
+                }
+            }
+        }
         stage('Dockerize') {
             steps {
                 sh 'docker build -t ${IMAGE_NAME} -f Dockerfile .'
