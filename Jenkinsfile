@@ -3,6 +3,10 @@ pipeline {
     
     environment {
         IMAGE_NAME = "flare-api"
+        DOCKER_IMAGE = "eastflare/flare-api"
+        DOCKER_REGISTRY = "https://registry.hub.docker.com"
+        CREDENTIAL_ID = "docker-account"
+        DOCKER_ID = "eastflare"
     }
 
     stages {
@@ -14,14 +18,21 @@ pipeline {
         }
         stage('Dockerize') {
             steps {
-                sh 'docker build -t ${IMAGE_NAME} -f Dockerfile .'
+                script {
+                    docker.withRegistry( ${DOCKER_REGISTRY}, ${DOCKER_ACCOUNT}) {
+                        def image = docker.build("${DOCKER_IMAGE}:v1")
+                        image.push()
+                    }
+                }
             }
         }
         stage('Deploy') {
             steps {
+                sh 'docker login -u eastflare -p 1!jdmesnga'
+                sh 'docker pull ${DOCKER_IMAGE}'
                 sh 'docker stop ${IMAGE_NAME} || true'
                 sh 'docker rm ${IMAGE_NAME} || true'
-                sh 'docker run docker run -d --name ${IMAGE_NAME} -p 8080:8080 ${IMAGE_NAME}:latest'
+                sh 'docker run docker run -d --name ${IMAGE_NAME} -p 8080:8080 ${DOCKER_IMAGE}:v1'
             }
         }
     }
