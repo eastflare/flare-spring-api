@@ -5,7 +5,7 @@ pipeline {
         IMAGE_NAME = "flare-api"
         DOCKER_IMAGE = "eastflare/flare-api"
         DOCKER_REGISTRY = "https://registry.hub.docker.com"
-        CREDENTIAL_ID = "docker-account"
+        DOCKER_CREDENTIALS = "docker-account"
         DOCKER_ID = "eastflare"
     }
 
@@ -18,21 +18,26 @@ pipeline {
         }
         stage('Dockerize') {
             steps {
-                script {
-                    docker.withRegistry( ${DOCKER_REGISTRY}, ${DOCKER_ACCOUNT}) {
-                        def image = docker.build("${DOCKER_IMAGE}:v1")
-                        image.push()
-                    }
+                sh 'docker build -t ${IMAGE_NAME} -f Dockerfile .'
+                sh 'docker tag ${IMAGE_NAME} ${DOCKER_IMAGE}'
+            }
+        }
+        stage('Push to Registry') {
+            steps {
+                withDockerRegistry([credentialsId: "${DOCKER_CREDENTIALS}", url: "${DOCKER_REGISTRY}"]) {
+                    sh 'docker push ${DOCKER_IMAGE}'
                 }
             }
         }
         stage('Deploy') {
             steps {
-                sh 'docker login -u eastflare -p 1!jdmesnga'
-                sh 'docker pull ${DOCKER_IMAGE}'
-                sh 'docker stop ${IMAGE_NAME} || true'
-                sh 'docker rm ${IMAGE_NAME} || true'
-                sh 'docker run docker run -d --name ${IMAGE_NAME} -p 8080:8080 ${DOCKER_IMAGE}:v1'
+                sh """
+                    docker login -u eastflare -p 1!jdmesnga
+                    docker pull ${DOCKER_IMAGE}
+                    docker stop ${IMAGE_NAME} || true
+                    docker rm ${IMAGE_NAME} || true
+                    docker run docker run -d --name ${IMAGE_NAME} -p 8080:8080 ${DOCKER_IMAGE}:v1
+                """
             }
         }
     }
