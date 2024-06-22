@@ -21,7 +21,7 @@ pipeline {
             steps {
                 sh 'docker stop ${IMAGE_NAME} || true'
                 sh 'docker rm ${IMAGE_NAME} || true'
-                sh 'docker run docker run -d --name ${IMAGE_NAME} -p 8080:8080 ${IMAGE_NAME}'
+                sh 'docker run docker run -d --name ${IMAGE_NAME} -p 8080:8080 ${IMAGE_NAME}:latest'
             }
         }
     }
