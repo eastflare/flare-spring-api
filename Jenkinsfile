@@ -3,7 +3,7 @@ pipeline {
     
     environment {
         IMAGE_NAME = "flare-spring-api"
-        DOCKER_IMAGE = "eastflare/flare-spring-api"
+        DOCKER_IMAGE = "eastflare/flare-spring-api:latest"
         DOCKER_REGISTRY = "https://index.docker.io/v1"
         DOCKER_CREDENTIALS_ID = "docker-account"
         DOCKER_ID = "eastflare"
@@ -35,7 +35,7 @@ pipeline {
                     docker pull ${DOCKER_IMAGE}
                     docker stop ${IMAGE_NAME} || true
                     docker rm ${IMAGE_NAME} || true
-                    docker run docker run -d --name ${IMAGE_NAME} -p 8080:8080 ${DOCKER_IMAGE}:latest
+                    docker run docker run -d --name ${IMAGE_NAME} -p 8080:8080 ${DOCKER_IMAGE}
                 """
             }
         }
