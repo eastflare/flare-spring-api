@@ -32,7 +32,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh """
-                    cat ~/my_password.txt | docker login --username=${DOCKER_ID} --password-stdin
+                    cat /var/jenkins_home/my_password.txt | docker login --username=${DOCKER_ID} --password-stdin
                     docker pull ${DOCKER_IMAGE}
                     docker stop ${IMAGE_NAME} || true
                     docker rm ${IMAGE_NAME} || true
