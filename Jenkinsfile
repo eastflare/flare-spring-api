@@ -1,8 +1,5 @@
 pipeline {
     agent any
-    tools {
-        dockerTool 'Jenkins-Docker'
-    }
     
     environment {
         IMAGE_NAME = "flare-spring-api"
