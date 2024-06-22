@@ -5,7 +5,8 @@ pipeline {
         IMAGE_NAME = "flare-spring-api"
         DOCKER_IMAGE = "eastflare/flare-spring-api"
         DOCKER_REGISTRY = "https://registry.hub.docker.com"
-        DOCKER_CREDENTIALS = "docker-account"
+        DOCKER_CREDENTIALS_ID = "docker-account"
+        DOCKER_CREDENTIALS = credentials('docker-account')
         DOCKER_ID = "eastflare"
     }
 
@@ -24,7 +25,7 @@ pipeline {
         }
         stage('Push to Registry') {
             steps {
-                withDockerRegistry([credentialsId: "${DOCKER_CREDENTIALS}", url: "${DOCKER_REGISTRY}"]) {
+                withDockerRegistry([credentialsId: "${DOCKER_CREDENTIALS_ID}", url: "${DOCKER_REGISTRY}"]) {
                     sh 'docker push ${DOCKER_IMAGE}'
                 }
             }
@@ -32,7 +33,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh """
-                    docker login -u eastflare -p 1!jdmesnga
+                    docker login -u ${DOCKER_CREDENTIALS} --password-stdin
                     docker pull ${DOCKER_IMAGE}
                     docker stop ${IMAGE_NAME} || true
                     docker rm ${IMAGE_NAME} || true
