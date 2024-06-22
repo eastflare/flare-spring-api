@@ -2,15 +2,7 @@ pipeline {
     agent any
     
     environment {
-        IMAGE_NAME = "flare-spring-api"
-        DOCKER_IMAGE = "eastflare/flare-spring-api"
-        DOCKER_CREDENTIALS = "docker-hub"
-        DOCKER_REGISTRY = "https://registry.hub.docker.com"
-        TARGET_HOST = "bbnerino@heyhey.i234.me"
-        ContainerPort = "3333"
-        LocalPort = "3333"
-        DOCKER_USER="bbnerino"
-        DOCKER_PASS="****"
+        IMAGE_NAME = "flare-api"
     }
 
     stages {
@@ -23,7 +15,13 @@ pipeline {
         stage('Dockerize') {
             steps {
                 sh 'docker build -t ${IMAGE_NAME} -f Dockerfile .'
-                sh 'docker tag ${IMAGE_NAME} ${DOCKER_IMAGE}'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh 'docker stop ${IMAGE_NAME}'
+                sh 'docker rm ${IMAGE_NAME}'
+                sh 'docker run docker run -d --name ${IMAGE_NAME} -p 8080:8080 ${IMAGE_NAME}'
             }
         }
     }
