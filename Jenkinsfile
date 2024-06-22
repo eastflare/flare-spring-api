@@ -4,7 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = "flare-spring-api"
         DOCKER_IMAGE = "eastflare/flare-spring-api:latest"
-        DOCKER_REGISTRY = "https://index.docker.io/v1"
+        DOCKER_REGISTRY = "https://index.docker.io/v1/"
         DOCKER_CREDENTIALS_ID = "docker-account"
         DOCKER_ID = "eastflare"
     }
