@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        IMAGE_NAME = "flare-spring-api"
+        IMAGE_NAME = "flareapi"
         DOCKER_IMAGE = "eastflare/flare-spring-api:latest"
         DOCKER_REGISTRY = "https://index.docker.io/v1/"
         DOCKER_CREDENTIALS_ID = "docker-account"
