@@ -46,7 +46,7 @@ springdoc:
     tags-sorter: alpha
 
 server:
-  port: 7070
+  port: 8080
   servlet:
     context-path: /
     encoding:
