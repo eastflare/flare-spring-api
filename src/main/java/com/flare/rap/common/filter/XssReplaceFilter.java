@@ -23,7 +23,7 @@ import java.util.List;
 public class XssReplaceFilter extends OncePerRequestFilter {
 
     private final List<PathPattern> excludePathList = new ArrayList<PathPattern>();
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
     public XssReplaceFilter(String[] excludePaths, ObjectMapper objectMapper){
         this.objectMapper = objectMapper;

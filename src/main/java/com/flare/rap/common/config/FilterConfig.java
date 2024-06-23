@@ -15,11 +15,30 @@ public class FilterConfig {
 
     private final ObjectMapper objectMapper;
 
-    @Value("/api/v1/namoFileUpload,/api/v1/approval/mobile/**")
+    @Value("${filter.xss-block.exclude-paths}")
     private final String[] xssBlockExcludePaths;
 
-    @Value("/api/v1/namoFileUpload,/api/v1/approval/mobile/**")
+    @Value("${filter.xss-replace.exclude-paths}")
     private final String[] xssReplaceExcludePaths;
+
+    /**
+     * XssReplacFilter 설명
+     * XSS 에 해당하는 문자 (<, >, \, & 등등)가 포함되어있으면 해단 문자를 Replace(escape) ehlqslek.
+     * 문자 Replace(escape)는 HtmlCharacterEscapes 클래스를 사용합니다.
+     * - replace(scape) 된 데이터를 다시 조회 할때 아래 조치를 취할 수 있습니다.
+     * 예시) 제목, 성명 등 XSS 문자열을 허용하지 않은 경우 replace(escape)된 데이터를 그대로 보여줍니다.
+     *      FE에서 보여주는 방법에 따라 &tl;, < 로 보임.
+     * 예시) 웹에디터를 통한 입력일 경우
+     *  html 요소를 화면에 끼워넣기 위한 목적으로 입력한 것이미르ㅗ replace(escape) 된 데이터를 unescape 해서 FE에 보내야 합니다.
+     *  BE Code Sample :
+     *      bbs.setBbmCtn(ValidateUtil.charUnescape(bbs.getBbmCtn()));
+     *
+     *  따라서 FE에서는 XSS 공격 코드가 포함된 결과를 받아보게 되는데
+     *  이를 차단하기 위해 dompurify.sanitize 를 이용해 XSS공격을 위한 패턴을 제거 해야 합니다.
+     *  FE Code Sample :
+     *      import DOMPurify form 'dompurify';
+     *      dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(post?.bbmCtn + '') }}
+     */
 
     @Bean
     public FilterRegistrationBean<XssReplaceFilter> XssReplaceFilter(){
@@ -76,6 +95,7 @@ public class FilterConfig {
     }
 
     private String[] concatenateStringArray(String[] ary1, String[] ary2) {
+
         if(ary1 == null || ary1.length == 0) return ary2;
         if(ary2 == null || ary2.length == 0) return ary1;
 

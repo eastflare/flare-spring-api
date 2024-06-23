@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 public class XssBlockFilterWrapper extends HttpServletRequestWrapper {
 
-    private String requestData;
+    private final String requestData;
 
     public XssBlockFilterWrapper(HttpServletRequest request) throws IOException {
         super(request);

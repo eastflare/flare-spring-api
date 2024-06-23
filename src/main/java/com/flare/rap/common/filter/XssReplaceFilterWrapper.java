@@ -13,8 +13,8 @@ import java.util.Map;
 public class XssReplaceFilterWrapper extends HttpServletRequestWrapper {
 
     private byte[] rawData;
-    private HttpServletRequest request;
-    private ResettableServletInputStream servletStream;
+    private final HttpServletRequest request;
+    private final ResettableServletInputStream servletStream;
 
     public XssReplaceFilterWrapper(HttpServletRequest request) {
         super(request);
@@ -94,7 +94,7 @@ public class XssReplaceFilterWrapper extends HttpServletRequestWrapper {
         return new BufferedReader(new InputStreamReader(servletStream));
     }
 
-    private class ResettableServletInputStream extends ServletInputStream {
+    private static class ResettableServletInputStream extends ServletInputStream {
 
         private InputStream stream;
 
