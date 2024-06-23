@@ -27,10 +27,12 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
 
         String uurl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getRequestURI();
 
+        /*
         HttpSession session = request.getSession(false);
         if( session == null) {
             throw new BusinessException("Session Expire - session, Access url is " + uurl, StatusCodeConstants.SESSION_EXPIRE);
         }
+        */
 
         return true;
     }
