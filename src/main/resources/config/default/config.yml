@@ -30,7 +30,5 @@ filter:
     exclude-paths: /api/v1/namoFileUpload,/api/v1/approval/mobile/**
 
 interceptor:
-  sso-cookie:
-    exclude-paths: /api/v1/namoFileUpload,/api/v1/approval/mobile/**,/api/v1/dev/login
-  autentication:
+  authentication:
     exclude-paths: /api/v1/namoFileUpload,/api/v1/approval/mobile/**,/api/v1/dev/login
