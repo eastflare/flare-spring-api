@@ -1,9 +1,12 @@
-modules = ["java-graalvm22.3"]
+modules = ["java-graalvm22.3", "nix"]
 run = "./gradlew bootRun"
 language = "java17"
 
 [nix]
 channel = "stable-24_05"
+
+[deployment]
+run = ["sh", "-c", "./gradlew bootRun"]
 
 [[ports]]
 localPort = 8080
