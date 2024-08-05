@@ -17,7 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.PathContainer;
-import org.springframework.lang.NonNullApi;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPatternParser;
@@ -127,7 +126,7 @@ public class XssBlockFilter extends OncePerRequestFilter {
     void onError(HttpStatus httpStatus, HttpServletResponse response, String message, Error error){
 
         ResponseEntity<CommonResponseVO> errorResponse = new ResponseEntity<>(CommonResponseVO.builder()
-                .successOrNot(CommonConstants.NO)
+                .successOrNot(CommonConstants.NO_FLAG)
                 .statusCode(StatusCodeConstants.XSS_FORBIDDEN_STRING_INCLUDE)
                 .data(message)
                 .build(), HttpStatus.BAD_REQUEST);

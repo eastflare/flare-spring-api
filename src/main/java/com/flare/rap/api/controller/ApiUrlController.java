@@ -33,7 +33,7 @@ public class ApiUrlController {
     @GetMapping(value = "/v1/apiUrls", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CommonResponseVO<List<ApiUrlResponseVO>>> findApiUrls(@ParameterObject ApiUrlConditionVO apiUrlCondition){
         return new ResponseEntity<>(CommonResponseVO.<List<ApiUrlResponseVO>>builder()
-                .successOrNot(CommonConstants.YES)
+                .successOrNot(CommonConstants.YES_FLAG)
                 .statusCode(StatusCodeConstants.SUCCESS)
                 .data(apiUrlService.findApiUrls(apiUrlCondition))
                 .build(), HttpStatus.OK);

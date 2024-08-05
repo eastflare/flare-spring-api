@@ -11,7 +11,7 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CommonResponseVO<T> {
 
-    @Schema(example = CommonConstants.YES)
+    @Schema(example = CommonConstants.YES_FLAG)
     private String successOrNot;
 
     @Schema(example = StatusCodeConstants.SUCCESS)
