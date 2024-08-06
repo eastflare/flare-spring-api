@@ -12,8 +12,8 @@ import com.flare.rap.log.model.EmailLogRequestVO;
 import com.flare.rap.log.model.IfLogRequestVO;
 import com.flare.rap.log.model.LoginLogRequestVO;
 import com.flare.rap.log.model.MenuLogRequestVO;
-import com.lgensol.spdm.sample.model.ExcelRequestVO;
-import com.lgensol.spdm.sample.service.LogExcelDownloadService;
+import com.flare.project.sample.model.ExcelRequestVO;
+import com.flare.project.sample.service.LogExcelDownloadService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
