@@ -5,7 +5,7 @@ import javax.cache.Caching;
 import javax.cache.spi.CachingProvider;
 
 import org.ehcache.config.CacheConfiguration;
-import org.ehcache.config.builderr;
+import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.config.builders.ExpiryPolicyBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
 import org.ehcache.config.units.MemoryUnit;
