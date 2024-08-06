@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.flare.rap.message.repository.MessageImportRepository">
+
+  <select id="selectSourceMessages" resultType="com.flare.rap.message.model.MessageVO">
+      <![CDATA[
+        WITH MSG_TMP AS
+         (SELECT Z1.*
+            FROM (SELECT MSG_CTN
+                        ,MSG_TXT_CTN
+                        ,FILE_PATH
+                        ,FROM_DIV
+                        ,RANK() OVER(PARTITION BY MSG_CTN ORDER BY SEQ) AS RNK
+                    FROM TB_RPJTE_MSG_TMP_M) Z1
+           WHERE Z1.RNK = 1)
+        SELECT AA.MSG_CTN
+              ,AA.LANG_CD
+              ,REPLACE((SELECT ZZ.MSG_TXT_CTN || '(' || AA.LANG_CD || ')'
+                         FROM MSG_TMP ZZ
+                        WHERE ZZ.MSG_CTN = AA.MSG_CTN), '(ko)', '') AS MSG_TXT_CTN
+              ,(SELECT ZZ.MSG_TXT_CTN FROM MSG_TMP ZZ WHERE ZZ.MSG_CTN = AA.MSG_CTN) AS RMK
+              ,(SELECT ZZ.FILE_PATH FROM MSG_TMP ZZ WHERE ZZ.MSG_CTN = AA.MSG_CTN) AS OPT_VAL_CTN1
+              ,'' AS OPT_VAL_CTN2
+              ,'' AS OPT_VAL_CTN3
+              ,'Y' AS USE_YN
+              ,AA.FROM_DIV AS DATA_INS_USER_ID
+              ,'0.0.0.0'
+              ,SYSDATE
+              ,AA.FROM_DIV AS DATA_UPD_USER_ID
+              ,'0.0.0.0'
+              ,SYSDATE
+          FROM (SELECT A.MSG_CTN AS MSG_CTN
+                      ,B.CMN_CD  AS LANG_CD
+                      ,A.FROM_DIV
+                  FROM MSG_TMP A
+                 CROSS JOIN (SELECT BB.CMN_CD
+                              FROM TB_RPJTE_CMN_C BB
+                             WHERE BB.CMN_GR_CD = 'LANG_CD') B
+               ) AA
+      ]]>
+  </select>
+
+
+  <select id="selectMessageExistCheck" resultType="com.flare.rap.message.model.MessageImportCheckVO">
+      <![CDATA[
+        SELECT A.MSG_CTN
+              ,A.LANG_CD
+              ,A.MSG_TXT_CTN
+              -- ,CASE WHEN A.LANG_CD = 'ko'
+              --      THEN 'Y'
+              ,CASE WHEN REPLACE(A.MSG_TXT_CTN, ' ', '') LIKE '%' || '(' || #{langCd} || ')'
+                    THEN 'N'
+                    ELSE 'Y'
+                END AS TRANS_YN
+              ,A.USE_YN
+          FROM TB_RPJTE_MSG_M A
+         WHERE A.MSG_CTN = #{msgCtn}
+           AND A.LANG_CD = #{langCd}
+      ]]>
+  </select>
+
+
+    <update id="updateMessageFeBeUseYn" >
+        <![CDATA[
+            UPDATE TB_RPJTE_MSG_M
+               SET USE_YN = 'N'
+             WHERE DATA_INS_USER_ID IN ('TSX_EXTRACT', 'BE_EXTRACT')
+        ]]>
+    </update>
+
+    <insert id="insertMessage">
+        INSERT INTO TB_RPJTE_MSG_M
+        (
+         MSG_CTN
+        ,LANG_CD
+        ,MSG_TXT_CTN
+        ,RMK
+        ,OPT_VAL_CTN1
+        ,OPT_VAL_CTN2
+        ,OPT_VAL_CTN3
+        ,USE_YN
+        ,DATA_INS_USER_ID
+        ,DATA_INS_USER_IP
+        ,DATA_INS_DTM
+        ,DATA_UPD_USER_ID
+        ,DATA_UPD_USER_IP
+        ,DATA_UPD_DTM
+        )
+        VALUES
+        (
+         #{message.msgCtn}
+        ,#{message.langCd}
+        ,#{message.msgTxtCtn}
+        ,#{message.rmk}
+        ,#{message.optValCtn1}
+        ,#{message.optValCtn2}
+        ,#{message.optValCtn3}
+        ,#{message.useYn}
+        ,#{message.dataInsUserId}
+        ,#{message.dataInsUserIp}
+        ,SYSDATE
+        ,#{message.dataUpdUserId}
+        ,#{message.dataUpdUserIp}
+        ,SYSDATE
+        )
+    </insert>
+
+    <update id="updateMessageToUse" >
+        <![CDATA[
+            UPDATE TB_RPJTE_MSG_M
+               SET USE_YN = 'Y'
+             WHERE MSG_CTN = #{msgCtn}
+               AND LANG_CD = #{langCd}
+        ]]>
+    </update>
+
+    <update id="updateMessageText" >
+        <![CDATA[
+            UPDATE TB_RPJTE_MSG_M
+               SET MSG_TXT_CTN = #{message.msgTxtCtn}
+             WHERE MSG_CTN =  #{message.msgCtn}
+               AND LANG_CD = #{message.langCd}
+        ]]>
+    </update>
+
+
+</mapper>

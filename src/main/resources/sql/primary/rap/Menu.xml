@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.flare.rap.menu.repository.MenuRepository">
+    <select id="selectAllMenus" resultType="com.flare.rap.menu.model.MenuResponseVO">
+        SELECT M.MNU_ID
+              ,M.MNU_NM
+              ,M.MNU_URL
+              ,M.MNU_LV_NO
+              ,M.UPPR_MNU_ID
+              ,M.SORT_ORD
+              ,M.USE_YN
+              ,M.MNU_DESC
+              ,M.MNU_EPS_YN
+              ,M.MNU_OPT_VAL_CTN1
+              ,M.MNU_OPT_VAL_CTN2
+              ,M.MNU_OPT_VAL_CTN3
+              ,M.MNU_OPT_VAL_CTN4
+              ,M.MNU_OPT_VAL_CTN5
+              ,M.MSG_CTN
+          FROM TB_RPJTE_MENU_M M
+      ORDER BY M.UPPR_MNU_ID, M.SORT_ORD
+    </select>
+
+    <select id="selectMenu" parameterType="String" resultType="com.flare.rap.menu.model.MenuResponseVO">
+     SELECT M.MNU_ID
+           ,M.MNU_NM
+           ,M.MNU_URL
+           ,M.MNU_LV_NO
+           ,M.UPPR_MNU_ID
+           ,M.SORT_ORD
+           ,M.USE_YN
+           ,M.MNU_DESC
+           ,M.MNU_EPS_YN
+           ,M.MNU_OPT_VAL_CTN1
+           ,M.MNU_OPT_VAL_CTN2
+           ,M.MNU_OPT_VAL_CTN3
+           ,M.MNU_OPT_VAL_CTN4
+           ,M.MNU_OPT_VAL_CTN5
+           ,M.MSG_CTN
+       FROM TB_RPJTE_MENU_M M
+      WHERE M.MNU_ID = #{mnuId}
+    </select>
+
+    <select id="selectChildMenus" resultType="com.flare.rap.menu.model.MenuResponseVO">
+      SELECT M.MNU_ID
+             ,M.MNU_NM
+             ,M.MNU_URL
+             ,M.MNU_LV_NO
+             ,M.UPPR_MNU_ID
+             ,M.SORT_ORD
+             ,M.USE_YN
+             ,M.MNU_DESC
+             ,M.MNU_EPS_YN
+             ,M.MNU_OPT_VAL_CTN1
+             ,M.MNU_OPT_VAL_CTN2
+             ,M.MNU_OPT_VAL_CTN3
+             ,M.MNU_OPT_VAL_CTN4
+             ,M.MNU_OPT_VAL_CTN5
+             ,M.MSG_CTN
+         FROM TB_RPJTE_MENU_M M
+        WHERE M.UPPR_MNU_ID = #{mnuId}
+     ORDER BY M.SORT_ORD, M.DATA_UPD_DTM DESC, M.DATA_INS_DTM DESC
+    </select>
+
+    <update id="updateMenuSortOrd">
+        UPDATE TB_RPJTE_MENU_M
+           SET SORT_ORD = #{sortOrd}
+              ,DATA_UPD_USER_ID = #{session.userId}
+              ,DATA_UPD_USER_IP = #{session.userIp}
+              ,DATA_UPD_DTM = SYSDATE
+         WHERE MNU_ID = #{mnuId}
+    </update>
+
+    <insert id="insertMenu">
+        INSERT
+        INTO  TB_RPJTE_MENU_M
+        (  MNU_ID
+        ,  MNU_NM
+        ,  MNU_URL
+        ,  UPPR_MNU_ID
+        ,  USE_YN
+        ,  MNU_DESC
+        ,  SORT_ORD
+        ,  MNU_EPS_YN
+        ,  MNU_OPT_VAL_CTN1
+        ,  MNU_OPT_VAL_CTN2
+        ,  MNU_OPT_VAL_CTN3
+        ,  MNU_OPT_VAL_CTN4
+        ,  MNU_OPT_VAL_CTN5
+        ,  MSG_CTN
+        ,  DATA_INS_USER_ID
+        ,  DATA_INS_USER_IP
+        ,  DATA_INS_DTM
+        ,  DATA_UPD_USER_ID
+        ,  DATA_UPD_USER_IP
+        ,  DATA_UPD_DTM)
+        VALUES
+        ( (SELECT LPAD(NVL(MAX(MNU_ID), 0) + 1, 6,'0') FROM TB_RPJTE_MENU_M)
+        ,#{menu.mnuNm}
+        ,#{menu.mnuUrl}
+        ,#{menu.upprMnuId}
+        ,#{menu.useYn}
+        ,#{menu.mnuDesc}
+        ,#{menu.sortOrd}
+        ,#{menu.mnuEpsYn}
+        ,#{menu.mnuOptValCtn1}
+        ,#{menu.mnuOptValCtn2}
+        ,#{menu.mnuOptValCtn3}
+        ,#{menu.mnuOptValCtn4}
+        ,#{menu.mnuOptValCtn5}
+        ,#{menu.msgCtn}
+        ,#{session.userId}
+        ,#{session.userIp}
+        ,current_date
+        ,#{session.userId}
+        ,#{session.userIp}
+        ,current_date
+        )
+    </insert>
+
+    <update id="updateMenu">
+        UPDATE  TB_RPJTE_MENU_M
+        SET  DATA_UPD_USER_ID = #{session.userId}
+        ,DATA_UPD_USER_IP = #{session.userIp}
+        ,DATA_UPD_DTM = current_date
+        <if test='menu.mnuUrl != null and menu.mnuUrl != ""'>
+            ,MNU_URL = #{menu.mnuUrl}
+        </if>
+        <if test='menu.mnuNm != null and menu.mnuNm != ""'>
+            ,MNU_NM = #{menu.mnuNm}
+        </if>
+        <if test='menu.mnuDesc != null and menu.mnuDesc != ""'>
+            ,MNU_DESC = #{menu.mnuDesc}
+        </if>
+        <if test='menu.useYn != null and menu.useYn != ""'>
+            ,USE_YN = #{menu.useYn}
+        </if>
+        <if test='menu.upprMnuId != null and menu.upprMnuId != ""'>
+            ,UPPR_MNU_ID = #{menu.upprMnuId}
+        </if>
+        <if test='menu.sortOrd != null'>
+            ,SORT_ORD = #{menu.sortOrd}
+        </if>
+        <if test='menu.mnuEpsYn != null and menu.mnuEpsYn != ""'>
+            ,MNU_EPS_YN = #{menu.mnuEpsYn}
+        </if>
+        <if test='menu.mnuOptValCtn1 != null and menu.mnuOptValCtn1 != ""'>
+            ,MNU_OPT_VAL_CTN1 = #{menu.mnuOptValCtn1}
+        </if>
+        <if test='menu.mnuOptValCtn2 != null and menu.mnuOptValCtn2 != ""'>
+            ,MNU_OPT_VAL_CTN2 = #{menu.mnuOptValCtn2}
+        </if>
+        <if test='menu.mnuOptValCtn3 != null and menu.mnuOptValCtn3 != ""'>
+            ,MNU_OPT_VAL_CTN3 = #{menu.mnuOptValCtn3}
+        </if>
+        <if test='menu.mnuOptValCtn4 != null and menu.mnuOptValCtn4 != ""'>
+            ,MNU_OPT_VAL_CTN4 = #{menu.mnuOptValCtn4}
+        </if>
+        <if test='menu.mnuOptValCtn5 != null and menu.mnuOptValCtn5 != ""'>
+            ,MNU_OPT_VAL_CTN5 = #{menu.mnuOptValCtn5}
+        </if>
+        <if test='menu.msgCtn != null and menu.msgCtn != ""'>
+            ,MSG_CTN = #{menu.msgCtn}
+        </if>
+        WHERE   MNU_ID  = #{menu.mnuId}
+    </update>
+
+    <delete id="deleteMenus">
+        DELETE
+          FROM TB_RPJTE_MENU_M M
+         WHERE M.MNU_ID IN (SELECT TM.MNU_ID
+                            FROM TB_RPJTE_MENU_M TM
+                           START WITH TM.MNU_ID = #{mnuId}
+                         CONNECT BY PRIOR TM.MNU_ID = UPPR_MNU_ID)
+
+    </delete>
+
+    <select id="selectRolesByMenuId" resultType="com.flare.rap.role.model.RoleResponseVO">
+      SELECT R.ROLE_CD
+            ,R.ROLE_NM
+            ,R.ROLE_DESC
+            ,R.USE_YN
+        FROM TB_RPJTE_ROLE_M R
+       WHERE R.ROLE_CD IN ( SELECT RM.ROLE_CD
+                              FROM TB_RPJTE_ROLE_MENU_M RM
+                             WHERE RM.MNU_ID = #{mnuId} )
+
+    </select>
+
+    <select id="selectEmployeesByMenuId" resultType="com.flare.rap.role.model.RoleEmployeeResponseVO">
+        SELECT E.USER_ID
+              ,E.EMP_NM
+              ,E.DEPT_NM
+              ,E.EML_SVR_DMN_IFO_NM
+          FROM TB_RPJTE_EMP_M E
+         WHERE E.USER_ID IN (
+                                SELECT RE.USER_ID
+                                  FROM TB_RPJTE_ROLE_EMP_M RE
+                                 WHERE RE.ROLE_CD IN ( SELECT R.ROLE_CD
+                                                         FROM TB_RPJTE_ROLE_M R
+                                                        WHERE R.ROLE_CD IN ( SELECT RM.ROLE_CD
+                                                                               FROM TB_RPJTE_ROLE_MENU_M RM
+                                                                              WHERE RM.MNU_ID = #{mnuId}))
+        )
+
+    </select>
+
+    <select id="selectDepartmentsByMenuId" resultType="com.flare.rap.department.model.DepartmentVO">
+      SELECT D.DEPT_CD
+            ,D.COP_CD
+            ,D.DEPT_NM
+        FROM TB_RPJTE_DEPT_M D
+       WHERE D.DEPT_CD IN (
+            SELECT RD.DEPT_CD
+              FROM TB_RPJTE_ROLE_DEPT_M RD
+             WHERE RD.ROLE_CD IN ( SELECT R.ROLE_CD
+                                     FROM TB_RPJTE_ROLE_M R
+                                    WHERE R.ROLE_CD IN ( SELECT RM.ROLE_CD
+                                                           FROM TB_RPJTE_ROLE_MENU_M RM
+                                                          WHERE RM.MNU_ID = #{mnuId}))
+      )
+
+    </select>
+</mapper>

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.flare.rap.role.repository.RoleEmployeeRepository">
+    <select id="selectRoleEmployees" resultType="RoleEmployeeResponseVO">
+        SELECT E.USER_ID
+              ,E.EMP_NO
+              ,E.EMP_NM
+              ,E.DEPT_CD
+              ,E.DEPT_NM
+              ,E.COP_CD
+              ,E.JTI_CD
+              ,E.JTI_NM
+              ,E.JPS_CD
+              ,E.JPS_NM
+              ,E.EML_SVR_DMN_IFO_NM
+              ,E.OFC_TANO || '-' || E.OFC_PHN AS officeNumber
+          FROM TB_RPJTE_EMP_M E
+         WHERE E.USER_ID IN (
+                                SELECT RE.USER_ID
+                                  FROM TB_RPJTE_ROLE_EMP_M RE
+                                 WHERE RE.ROLE_CD = #{roleCd}
+                            )
+    </select>
+
+    <select id="existRoleEmployees" resultType="boolean">
+       SELECT
+         CASE WHEN EXISTS(SELECT 1
+                            FROM TB_RPJTE_ROLE_EMP_M
+                           WHERE ROLE_CD = #{roleCd})
+              THEN 1
+              ELSE 0  END
+    </select>
+
+    <select id="selectRoleCdsByUserId" resultType="String">
+        <![CDATA[
+            -- 기본 Role 부여
+            SELECT CASE
+                     WHEN REGEXP_INSTR(TEM.EMP_NO, '[^0-9]') != 0 THEN
+                      'PTN'
+                     WHEN SUBSTR(TEM.EMP_NO, 1, 1) = 'F' THEN
+                      'PTN'
+                     WHEN SUBSTR(TEM.EMP_NO, 1, 1) = 'G' THEN
+                      'PTN'
+                     ELSE
+                      'CMN'
+                   END AS ROLE_CD
+              FROM TB_RPJTE_EMP_M TEM
+             WHERE TEM.USER_ID = #{userId}
+            UNION ALL
+            -- 사원벌 Role
+            SELECT TRM.ROLE_CD
+              FROM TB_RPJTE_EMP_M TEM
+              JOIN TB_RPJTE_ROLE_EMP_M TREN
+                ON TEM.USER_ID = TREN.USER_ID
+              LEFT OUTER JOIN TB_RPJTE_ROLE_M TRM
+                ON TREN.ROLE_CD = TRM.ROLE_CD
+             WHERE TEM.USER_ID = #{userId}
+            UNION ALL
+            -- 부서 Role
+            SELECT R.ROLE_CD
+              FROM TB_RPJTE_ROLE_DEPT_M R
+             WHERE (SELECT EM.DEPT_CD
+                      FROM TB_RPJTE_EMP_M EM
+                     WHERE EM.USER_ID = #{userId}) IN
+                   (SELECT D.DEPT_CD
+                      FROM TB_RPJTE_DEPT_M D
+                     START WITH D.DEPT_CD = R.DEPT_CD
+                    CONNECT BY PRIOR D.DEPT_CD = D.UPPR_DEPT_CD)
+        ]]>
+    </select>
+
+    <insert id="insertRoleEmployee">
+        MERGE INTO TB_RPJTE_ROLE_EMP_M RE
+             USING (
+                      SELECT #{roleCd} AS ROLE_CD
+                            ,#{userId} AS USER_ID
+                        FROM DUAL
+                   ) N
+                ON ( RE.ROLE_CD = N.ROLE_CD AND RE.USER_ID = N.USER_ID )
+        WHEN NOT MATCHED THEN
+                       INSERT ( ROLE_CD
+                                ,USER_ID
+                                ,DATA_INS_USER_ID
+                                ,DATA_INS_USER_IP
+                                ,DATA_INS_DTM
+                                ,DATA_UPD_USER_ID
+                                ,DATA_UPD_USER_IP
+                                ,DATA_UPD_DTM
+                      ) VALUES (
+                                #{roleCd}
+                                ,#{userId}
+                                ,#{session.userId}
+                                ,#{session.userIp}
+                                ,SYSDATE
+                                ,#{session.userId}
+                                ,#{session.userIp}
+                                ,SYSDATE
+                                )
+    </insert>
+
+    <delete id="deleteRoleEmployees">
+        DELETE
+          FROM TB_RPJTE_ROLE_EMP_M RE
+         WHERE RE.ROLE_CD = #{roleCd}
+           AND USER_ID IN
+            <foreach collection="userIdList" item="userId" open="(" separator="," close=")">
+                #{userId}
+            </foreach>
+    </delete>
+
+</mapper>

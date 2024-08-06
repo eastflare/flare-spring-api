@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.flare.rap.approval.repository.ApprovalDelegateRepository">
+  <select id="selectApprovalDelegates" parameterType="String" resultType="com.flare.rap.approval.model.ApprovalDelegateResponseVO">
+      <![CDATA[
+        SELECT * FROM (
+            SELECT ADM.APR_DLGT_NO
+                  ,ADM.APR_DLGT_USER_ID
+                  ,FN_GET_USER_INFO(ADM.APR_DLGT_USER_ID,'ko',2) AS APR_DLGT_USER_DISPLAY
+                  ,CASE WHEN #{session.langCd} = 'ko'            THEN DLE.DEPT_NM
+                        WHEN #{session.langCd} IN ('zhC','zhT')  THEN DLE.DEPT_CNG_NM
+                        WHEN #{session.langCd} IN ('en','pl')    THEN DLE.DEPT_ENG_NM
+                   END AS DLGT_USER_DEPT
+                  ,ADM.APR_DELE_USER_ID
+                  ,FN_GET_USER_INFO(ADM.APR_DELE_USER_ID,'ko',2) AS APR_DELE_USER_DISPLAY
+                  ,CASE WHEN #{session.langCd} = 'ko'            THEN DEE.DEPT_NM
+                        WHEN #{session.langCd} IN ('zhC','zhT')  THEN DEE.DEPT_CNG_NM
+                        WHEN #{session.langCd} IN ('en','pl')    THEN DEE.DEPT_ENG_NM
+                   END AS DELE_USER_DEPT
+                  ,ADM.APR_DLGT_ST_DT
+                  ,ADM.APR_DLGT_END_DT
+                  ,CASE WHEN ADM.USE_YN = 'N' THEN '종료'
+                        WHEN TO_CHAR(current_date,'YYYYMMDD') < ADM.APR_DLGT_ST_DT THEN '등록'
+                        WHEN TO_CHAR(current_date,'YYYYMMDD') BETWEEN ADM.APR_DLGT_ST_DT AND ADM.APR_DLGT_END_DT THEN '위임중'
+                        WHEN TO_CHAR(current_date,'YYYYMMDD') > ADM.APR_DLGT_END_DT THEN '종료'
+                   END AS STATUS
+                  ,CASE WHEN ADM.USE_YN = 'N' THEN 'CLOSE'
+                        WHEN TO_CHAR(current_date,'YYYYMMDD') < ADM.APR_DLGT_ST_DT THEN 'REGISTER'
+                        WHEN TO_CHAR(current_date,'YYYYMMDD') BETWEEN ADM.APR_DLGT_ST_DT AND ADM.APR_DLGT_END_DT THEN 'IN_PROGRESS'
+                        WHEN TO_CHAR(current_date,'YYYYMMDD') > ADM.APR_DLGT_END_DT THEN 'CLOSE'
+                   END AS STATUS_FLAG
+                  ,ADM.USE_YN
+                  ,ADM.DATA_INS_USER_ID
+                  ,TO_CHAR(ADM.DATA_INS_DTM,'YYYY.MM.DD HH24:MI:SS') AS DATA_INS_DTM
+            FROM TB_RPJTE_APR_DLGT_M ADM
+            LEFT OUTER JOIN TB_RPJTE_EMP_M DLE ON ADM.APR_DLGT_USER_ID = DLE.USER_ID
+            LEFT OUTER JOIN TB_RPJTE_EMP_M DEE ON ADM.APR_DELE_USER_ID = DEE.USER_ID
+            WHERE 1=1
+        ) A
+        WHERE 1=1
+    ]]>
+    <if test = 'statusFlag != null and statusFlag != ""'>
+        AND A.STATUS_FLAG IN (${statusFlag})
+    </if>
+    <if test = 'aprDlgtUserId != null and aprDlgtUserId != ""'>
+        AND A.APR_DLGT_USER_ID IN (${aprDlgtUserId})
+    </if>
+        ORDER BY A.APR_DLGT_NO DESC
+  </select>
+
+  <select id="selectDlgtDuplicateCheck" parameterType="com.flare.rap.approval.model.ApprovalDelegateRequestVO" resultType="String">
+      <![CDATA[
+        SELECT ADM.APR_DELE_USER_ID
+          FROM TB_RPJTE_APR_DLGT_M ADM
+         WHERE 1=1
+           AND ADM.APR_DLGT_USER_ID = #{approvalDelegates.aprDlgtUserId}
+           AND ADM.APR_DLGT_ST_DT <= #{approvalDelegates.aprDlgtEndDt}
+           AND ADM.APR_DLGT_END_DT > #{approvalDelegates.aprDlgtStDt}
+           AND ADM.USE_YN = 'Y'
+      ]]>
+  </select>
+
+  <update id="updateApprovalDelegate">
+    <![CDATA[
+        UPDATE TB_RPJTE_APR_DLGT_M ADM
+           SET ADM.APR_DLGT_ST_DT = #{approvalDelegates.aprDlgtStDt}
+              ,ADM.APR_DLGT_END_DT = CASE WHEN #{approvalDelegates.useYn} = 'N' AND TO_CHAR(SYSDATE, 'YYYYMMDD') <  #{approvalDelegates.aprDlgtEndDt}
+                                          THEN TO_CHAR(SYSDATE - 1, 'YYYYMMDD')
+                                          ELSE #{approvalDelegates.aprDlgtEndDt}
+                                      END
+              ,ADM.USE_YN = #{approvalDelegates.useYn}
+              ,ADM.DATA_UPD_USER_ID = #{session.userId}
+              ,ADM.DATA_UPD_USER_IP = #{session.userIp}
+              ,ADM.DATA_UPD_DTM = SYSDATE
+         WHERE ADM.APR_DLGT_NO = #{approvalDelegates.aprDlgtNo}
+     ]]>
+  </update>
+
+  <insert id="insertApprovalDelegate">
+    INSERT INTO TB_RPJTE_APR_DLGT_M
+          (APR_DLGT_NO
+          ,APR_DLGT_USER_ID
+          ,APR_DELE_USER_ID
+          ,APR_DLGT_ST_DT
+          ,APR_DLGT_END_DT
+          ,USE_YN
+          ,DATA_INS_USER_ID ,DATA_INS_USER_IP ,DATA_INS_DTM
+          ,DATA_UPD_USER_ID ,DATA_UPD_USER_IP ,DATA_UPD_DTM)
+    VALUES
+          ((SELECT NVL((MAX(APR_DLGT_NO) + 1), 1)
+              FROM TB_RPJTE_APR_DLGT_M)
+          ,#{approvalDelegates.aprDlgtUserId}
+          ,#{approvalDelegates.aprDeleUserId}
+          ,#{approvalDelegates.aprDlgtStDt}
+          ,#{approvalDelegates.aprDlgtEndDt}
+          ,#{approvalDelegates.useYn}
+          ,#{session.userId} ,#{session.userIp} ,SYSDATE
+          ,#{session.userId} ,#{session.userIp} ,SYSDATE)
+  </insert>
+
+    <select id="selectApprovalDelegatesForOne" parameterType="String" resultType="com.flare.rap.approval.model.ApprovalDelegateResponseVO">
+        <![CDATA[
+        SELECT ADM.APR_DLGT_NO
+              ,ADM.APR_DLGT_USER_ID
+              ,FN_GET_USER_INFO(ADM.APR_DLGT_USER_ID,#{session.langCd},2) AS APR_DLGT_USER_DISPLAY
+              ,CASE WHEN #{session.langCd} = 'ko'                THEN DLE.DEPT_NM
+                    WHEN #{session.langCd} IN ('zhC','zhT')      THEN DLE.DEPT_CNG_NM
+                    WHEN #{session.langCd} IN ('en','pl')        THEN DLE.DEPT_ENG_NM
+               END AS DLGT_USER_DEPT
+              ,ADM.APR_DELE_USER_ID
+              ,FN_GET_USER_INFO(ADM.APR_DELE_USER_ID,#{session.langCd},2) AS APR_DELE_USER_DISPLAY
+              ,CASE WHEN #{session.langCd} = 'ko'                THEN DEE.DEPT_NM
+                    WHEN #{session.langCd} IN ('zhC','zhT')      THEN DEE.DEPT_CNG_NM
+                    WHEN #{session.langCd} IN ('en','pl')        THEN DEE.DEPT_ENG_NM
+               END AS DELE_USER_DEPT
+              ,ADM.APR_DLGT_ST_DT
+              ,ADM.APR_DLGT_END_DT
+              ,CASE WHEN ADM.USE_YN = 'N' THEN '종료'
+                    WHEN TO_CHAR(SYSDATE,'YYYYMMDD') < ADM.APR_DLGT_ST_DT THEN '등록'
+                    WHEN TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN ADM.APR_DLGT_ST_DT AND ADM.APR_DLGT_END_DT THEN '위임중'
+                    WHEN TO_CHAR(SYSDATE,'YYYYMMDD') > ADM.APR_DLGT_END_DT THEN '종료'
+               END AS STATUS
+              ,ADM.USE_YN
+              ,ADM.DATA_INS_USER_ID
+              ,TO_CHAR(ADM.DATA_INS_DTM,'YYYY.MM.DD HH24:MI:SS') AS DATA_INS_DTM
+              FROM TB_RPJTE_APR_DLGT_M ADM
+              LEFT OUTER JOIN TB_RPJTE_EMP_M DLE
+                           ON ADM.APR_DLGT_USER_ID = DLE.USER_ID
+              LEFT OUTER JOIN TB_RPJTE_EMP_M DEE
+                           ON ADM.APR_DELE_USER_ID = DEE.USER_ID
+         WHERE 1=1
+           AND ADM.APR_DLGT_NO = #{aprDlgtNo}
+      ]]>
+
+    </select>
+
+
+</mapper>

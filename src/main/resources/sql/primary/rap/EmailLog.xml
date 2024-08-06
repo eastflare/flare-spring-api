@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.flare.rap.log.repository.EmailLogRepository">
+    <sql id="fromCondition">
+        FROM TB_RPJTE_EML_SNDO_LOG_M A
+        WHERE 1 = 1
+        <if test='condition.sedDtmFr != null and condition.sedDtmFr != ""'>
+            AND TO_CHAR(A.SED_DTM, 'YYYYMMDD') <![CDATA[>=]]> #{condition.sedDtmFr}
+        </if>
+        <if test='condition.sedDtmTo != null and condition.sedDtmTo != ""'>
+            AND TO_CHAR(A.SED_DTM, 'YYYYMMDD') <![CDATA[<=]]> #{condition.sedDtmTo}
+        </if>
+        <if test='condition.searchItem != null and condition.searchItem != ""'>
+            AND UPPER(A.EML_BDY_CTN) LIKE UPPER('%' || #{condition.searchItem} || '%')
+        </if>
+        <if test='condition.searchEmlTpCd != null and condition.searchEmlTpCd != ""'>
+            AND UPPER(A.EML_TP_CD) LIKE UPPER('%' || #{condition.searchEmlTpCd} || '%')
+        </if>
+        ORDER BY A.SED_DTM DESC
+    </sql>
+
+    <select id="selectEmailLogListCount" resultType="int">
+        SELECT COUNT(A.EML_SNDO_SEQ)
+        <include refid="fromCondition"></include>
+    </select>
+
+    <select id="selectEmailLogList" resultType="com.flare.rap.log.model.EmailLogResponseVO">
+        SELECT A.EML_SNDO_SEQ
+              ,A.EML_LOG_SEQ
+              ,A.EML_TP_CD
+              ,A.EML_RCVR_LST_CTN
+              ,A.SED_EMAL
+              ,TO_CHAR(A.SED_DTM, 'YYYY.MM.DD HH24:MI:SS') AS SED_DTM
+              ,A.EML_TRNM_STAT_CD
+              ,A.EML_TRNM_RLT_CTN
+              ,A.EML_BDY_CTN
+              ,A.APR_REQ_ID
+              ,A.OPT_VAL_NM1
+              ,A.OPT_VAL_NM2
+              ,A.OPT_VAL_NM3
+              ,A.OPT_VAL_NM4
+              ,A.OPT_VAL_NM5
+              ,A.DATA_INS_USER_ID
+              ,A.DATA_INS_USER_IP
+              ,A.DATA_INS_DTM
+              ,A.DATA_UPD_USER_ID
+              ,A.DATA_UPD_USER_IP
+              ,A.DATA_UPD_DTM
+        <include refid="fromCondition"></include>
+        <if test = 'condition.pageSize != null and condition.pageSize != ""'>
+            OFFSET #{condition.start} ROWS FETCH NEXT #{condition.pageSize} ROWS ONLY
+        </if>
+    </select>
+</mapper>

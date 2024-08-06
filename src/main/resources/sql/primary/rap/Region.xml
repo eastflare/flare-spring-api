@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+      PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+      "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.flare.rap.region.repository.RegionRepository">
+    <select id="selectSealRegion" resultType="com.flare.rap.region.model.RegionResponseVO">
+        SELECT C.CMN_CD AS REGN_CD
+              ,M.MSG_TXT_CTN  AS REGN_NM
+        FROM TB_RPJTE_CMN_GR_C G
+        INNER JOIN TB_RPJTE_CMN_C C ON ( G.CMN_GR_CD = C.CMN_GR_CD)
+        INNER JOIN TB_RPJTE_MSG_M M ON ( C.MSG_CTN = M.MSG_CTN)
+        WHERE G.CMN_GR_CD = 'REGN_CD'
+            AND C.USE_YN ='Y'
+            AND M.LANG_CD = #{langCd}
+        <if test = 'regnNm != null and regnNm != ""'>
+            AND C.CMN_CD_NM LIKE '%'||#{regnNm}||'%'
+        </if>
+        ORDER BY C.SORT_ORD
+    </select>
+</mapper>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.flare.rap.bbs.repository.BbsReplyRepository">
+    <select id="selectBbsReplies" resultType="com.flare.rap.bbs.model.BbsReplyResponseVO">
+        SELECT BR.BBM_NO
+              ,BR.BBM_RE_NO
+              ,BR.BBM_RE_CTN
+              ,BR.DATA_INS_DTM
+              ,BR.DATA_INS_USER_ID
+              ,FN_GET_USER_NM(E.USER_ID, #{langCd}, 'ID') AS EMP_NM
+              ,FN_GET_DEPT_NM(E.DEPT_CD, #{langCd}) AS DEPT_NM
+              ,FN_GET_CD_NM('JTI_CD', E.JTI_CD, #{langCd}) AS JTI_NM
+              ,FN_GET_CD_NM('JPS_CD', E.JPS_CD, #{langCd}) AS JPS_NM
+              ,NULL AS PHONE_NUMBER
+              ,NULL AS EMAIL
+        FROM TB_RPJTE_BBS_RE_D BR
+        LEFT JOIN TB_RPJTE_EMP_M E ON BR.DATA_INS_USER_ID = E.USER_ID
+        WHERE BR.BBM_NO = #{bbmNo}
+          AND BR.RE_DEL_YN ='N'
+    </select>
+
+    <select id="selectBbsReply" resultType="com.flare.rap.bbs.model.BbsReplyVO">
+        SELECT BR.BBM_NO
+              ,BR.BBM_RE_NO
+              ,BR.BBM_RE_CTN
+              ,BR.DATA_INS_DTM
+              ,BR.DATA_INS_USER_ID
+         FROM TB_RPJTE_BBS_RE_D BR
+        WHERE BR.BBM_NO = #{bbmNo}
+          AND BR.BBM_RE_NO =#{bbmReNo}
+          AND BR.RE_DEL_YN ='N'
+    </select>
+
+    <insert id="insertBbsReply">
+        INSERT INTO TB_RPJTE_BBS_RE_D
+        (
+             BBM_NO
+            ,BBM_RE_NO
+            ,BBM_RE_CTN
+            ,RE_DEL_YN
+            ,DATA_INS_USER_ID
+            ,DATA_INS_USER_IP
+            ,DATA_INS_DTM
+            ,DATA_UPD_USER_ID
+            ,DATA_UPD_USER_IP
+            ,DATA_UPD_DTM
+        )
+        VALUES
+        (
+            #{bbsReply.bbmNo}
+            ,(SELECT COALESCE(MAX(BBM_RE_NO) + 1, 0)
+                FROM TB_RPJTE_BBS_RE_D
+               WHERE BBM_NO = #{bbsReply.bbmNo})
+            ,#{bbsReply.bbmReCtn}
+            ,'N'
+            ,#{session.userId}
+            ,#{session.userIp}
+            ,SYSDATE
+            ,#{session.userId}
+            ,#{session.userIp}
+            ,SYSDATE
+        )
+    </insert>
+
+    <delete id="deleteBbsReply">
+        DELETE
+          FROM TB_RPJTE_BBS_RE_D
+         WHERE BBM_NO = #{bbmNo}
+           AND BBM_RE_NO = #{bbmReNo}
+    </delete>
+
+    <update id="updateBbsReply">
+        UPDATE TB_RPJTE_BBS_RE_D
+           SET BBM_RE_CTN = #{bbsReply.bbmReCtn}
+              ,DATA_UPD_USER_ID = #{session.userId}
+              ,DATA_UPD_USER_IP = #{session.userIp}
+              ,DATA_UPD_DTM = SYSDATE
+        WHERE BBM_NO = #{bbsReply.bbmNo}
+          AND BBM_RE_NO = #{bbsReply.bbmReNo}
+   </update>
+
+</mapper>

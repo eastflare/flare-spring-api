@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.flare.rap.log.repository.LoginLogRepository">
+    <insert id="insertLoginLog">
+        <![CDATA[
+            INSERT INTO TB_RPJTE_LOGN_LOG_M
+              (
+               CONT_LOG_ID
+              ,CONT_DTM
+              ,CONT_USER_ID
+              ,CONT_IP
+              ,DATA_INS_USER_ID
+              ,DATA_INS_USER_IP
+              ,DATA_INS_DTM
+              ,DATA_UPD_USER_ID
+              ,DATA_UPD_USER_IP
+              ,DATA_UPD_DTM
+              )
+              SELECT SEQ_CONT_LOG_ID.NEXTVAL
+                    ,SYSDATE
+                    ,#{session.userId}
+                    ,#{session.userIp}
+                    ,#{session.userId}
+                    ,#{session.userIp}
+                    ,SYSDATE
+                    ,#{session.userId}
+                    ,#{session.userIp}
+                    ,SYSDATE
+               FROM DUAL
+        ]]>
+    </insert>
+    <sql id="fromCondition">
+        FROM TB_RPJTE_LOGN_LOG_M A
+        LEFT OUTER JOIN TB_RPJTE_EMP_M C
+        ON A.CONT_USER_ID = C.USER_ID
+        WHERE 1 = 1
+        <if test='condition.contDtmFr != null and condition.contDtmFr != ""'>
+            AND TO_CHAR(A.CONT_DTM, 'YYYYMMDD') <![CDATA[>=]]> #{condition.contDtmFr}
+        </if>
+        <if test='condition.contDtmTo != null and condition.contDtmTo != ""'>
+            AND TO_CHAR(A.CONT_DTM, 'YYYYMMDD') <![CDATA[<=]]> #{condition.contDtmTo}
+        </if>
+        <if test='condition.searchItem != null and condition.searchItem != ""'>
+            AND (UPPER(A.CONT_USER_ID) LIKE UPPER('%' || #{condition.searchItem} || '%')
+            OR UPPER(C.EMP_NM) LIKE UPPER('%' || #{condition.searchItem} || '%')
+            )
+        </if>
+    </sql>
+
+    <select id="selectLoginLogListCount" resultType="int">
+        SELECT COUNT(1)
+        <include refid="fromCondition" />
+    </select>
+
+    <select id="selectLoginLogList" resultType="com.flare.rap.log.model.LoginLogResponseVO">
+        SELECT A.CONT_LOG_ID
+        ,TO_CHAR(A.CONT_DTM, 'YYYY.MM.DD HH24:MI:SS') AS CONT_DTM
+        ,A.CONT_USER_ID
+        ,C.EMP_NM
+        ,A.CONT_IP
+        ,C.DEPT_NM
+        ,A.DATA_INS_USER_ID
+        ,A.DATA_INS_USER_IP
+        ,A.DATA_INS_DTM
+        ,A.DATA_UPD_USER_ID
+        ,A.DATA_UPD_USER_IP
+        ,A.DATA_UPD_DTM
+        <include refid="fromCondition"/>
+        ORDER BY A.CONT_DTM DESC
+        <if test = 'condition.pageSize != null and condition.pageSize != ""'>
+            OFFSET #{condition.start} ROWS FETCH NEXT #{condition.pageSize} ROWS ONLY
+        </if>
+    </select>
+</mapper>

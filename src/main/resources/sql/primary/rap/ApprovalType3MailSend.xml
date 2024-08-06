@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.flare.rap.approval.repository.ApprovalType3MailSendRepository">
+
+    <!-- Type 3  : 결재라인을 조회 -->
+    <select id="selectApprovalLineOneBySeq" resultType="com.flare.rap.approval.model.ApprovalLineResponseVO">
+        <![CDATA[
+            SELECT AL.APR_REQ_ID
+                  ,AL.APR_LN_SEQ
+                  ,AL.APR_LN_SNB
+                  ,AL.GRNR_APR_TP_DIVS_CD
+                  ,AL.APR_FFIL_TP_CD
+                  ,AL.PRL_YN
+                  ,AL.APR_APRV_USER_ID
+                  ,AL.APR_PSG_STAT_CD
+                  ,TO_CHAR(AL.APR_APRV_DTM, 'YYYY-MM-DD HH24:MI:SS') AS APR_APRV_DTM
+                  ,AL.APR_APRV_OPIN_UTF8_CTN
+                  ,AL.APR_DLGT_USER_ID
+                  ,AL.APR_DLGT_NO
+                  ,AL.APR_LN_DIVS_CD
+                  ,NVL(AL.EML_SNDO_SEQ,0) AS EML_SNDO_SEQ
+              FROM TB_RPJTE_APR_LN_M AL
+             WHERE AL.APR_REQ_ID = #{approvalRequestId.aprReqId}
+               AND AL.APR_LN_SEQ = #{approvalRequestId.aprLnSeq}
+         ]]>
+    </select>
+
+    <!-- Type3 용 : 승인 요청 메일을 발송할 다음 결재라인을 조회 -->
+    <select id="selectNextApprovalMail" resultType="com.flare.rap.approval.model.ApprovalNextMailResponseVO">
+        <![CDATA[
+            SELECT EM.EMP_NO
+                  ,AL.APR_REQ_ID
+                  ,AL.APR_LN_SEQ
+                  ,AL.APR_LN_SNB
+                  ,AL.GRNR_APR_TP_DIVS_CD
+                  ,AL.PRL_YN
+                  ,AL.APR_APRV_USER_ID
+                  ,NVL(AL.EML_SNDO_SEQ,0) AS EML_SNDO_SEQ
+              FROM TB_RPJTE_APR_LN_M AL
+              LEFT JOIN TB_RPJTE_EMP_M EM
+                ON AL.APR_APRV_USER_ID = EM.USER_ID
+             WHERE AL.APR_REQ_ID = #{approvalRequestId.aprReqId}
+               AND AL.APR_LN_SEQ =
+                   (SELECT MIN(APR_LN_SEQ)
+                      FROM TB_RPJTE_APR_LN_M
+                     WHERE APR_LN_DIVS_CD = 'APPD'
+                       AND APR_APRV_DTM IS NULL
+                       AND APR_REQ_ID = #{approvalRequestId.aprReqId})
+         ]]>
+    </select>
+
+    <!-- Type3 용 : 승인 요청 메일 발송용 조회 -->
+    <select id="selectApprovalRequestMailSendInfo" resultType="com.flare.rap.approval.model.ApprovalType3RequestMailSendContentVO">
+        <![CDATA[
+            SELECT FN_GET_CD_OPT_VAL('SYS_CONFIG', 'MAIL_DEFALUT_FROM_ADDRESS', 1) AS FROM_ADDRESS
+                  ,CASE
+                     WHEN FN_GET_CD_OPT_VAL('SYS_CONFIG', 'SYS_ENV', 1) = 'DEV'
+                     THEN FN_GET_CD_OPT_VAL('SYS_CONFIG', 'MAIL_TEST_TO_ADDRESS', 1)
+                     ELSE EM.EML_DMN_IFO_NM
+                   END AS TO_ADDRESS
+                  ,'[' || FN_GET_CD_NM('SYS_CONFIG', 'SYSTEM_NAME', #{session.langCd}) || '] ' || RM.APR_REQ_TIT_NM AS SUBJECT
+                  ,FM.APR_TPL_NM
+                  ,RM.APR_REQ_TIT_NM
+                  ,FN_GET_LOCAL_TIME_D(#{session.timeZoneCd}, RM.APR_REQ_DTM, 'YYYY.MM.DD HH24:MI:SS') AS APR_REQ_DTM
+                  ,FN_GET_USER_INFO(RM.APR_REQ_USER_ID, #{session.langCd}, 1) AS APR_REQ_USER_NM
+                  ,RM.APR_WAIT_SCRN_URL AS LINK_URL
+              FROM TB_RPJTE_APR_LN_M AL
+              LEFT JOIN TB_RPJTE_EMP_M EM
+                ON AL.APR_APRV_USER_ID = EM.USER_ID
+              LEFT JOIN TB_RPJTE_APR_REQ_M RM
+                ON AL.APR_REQ_ID = RM.APR_REQ_ID
+              LEFT JOIN TB_RPJTE_APR_TPL_M FM
+                ON RM.APR_TPL_ID = FM.APR_TPL_ID
+             WHERE AL.APR_LN_DIVS_CD = 'APPD'
+               AND AL.APR_REQ_ID = #{approvalRequestId.aprReqId}
+               AND AL.APR_LN_SEQ = #{approvalRequestId.aprLnSeq}
+         ]]>
+    </select>
+
+    <!-- Type3 용 : 반려 알림 메일 발송용 조회 -->
+    <select id="selectApprovalRejectMailSendInfo" resultType="com.flare.rap.approval.model.ApprovalType3RejectedMailSendContentVO">
+        <![CDATA[
+            SELECT FN_GET_CD_OPT_VAL('SYS_CONFIG', 'MAIL_DEFALUT_FROM_ADDRESS', 1) AS FROM_ADDRESS
+                  ,CASE
+                     WHEN FN_GET_CD_OPT_VAL('SYS_CONFIG', 'SYS_ENV', 1) = 'DEV'
+                     THEN FN_GET_CD_OPT_VAL('SYS_CONFIG', 'MAIL_TEST_TO_ADDRESS', 1)
+                     ELSE EM2.EML_DMN_IFO_NM
+                   END AS TO_ADDRESS  -- 기안자에게 메일 발송
+                  ,'[' || FN_GET_CD_NM('SYS_CONFIG', 'SYSTEM_NAME', #{session.langCd}) || '] ' || RM.APR_REQ_TIT_NM AS SUBJECT
+                  ,FM.APR_TPL_NM
+                  ,RM.APR_REQ_TIT_NM
+                  ,FN_GET_LOCAL_TIME_D(#{session.timeZoneCd}, AL.APR_APRV_DTM, 'YYYY.MM.DD HH24:MI:SS') AS APR_REJECTED_DTM
+                  ,FN_GET_USER_INFO(RM.APR_REQ_USER_ID, #{session.langCd}, 1) AS APR_REQ_USER_NM
+                  ,FN_GET_USER_INFO(AL.APR_APRV_USER_ID, #{session.langCd}, 1) AS APR_APRV_USER_NM
+                  ,RM.APR_WAIT_SCRN_URL AS LINK_URL
+              FROM TB_RPJTE_APR_LN_M AL
+              LEFT JOIN TB_RPJTE_EMP_M EM1
+                ON AL.APR_APRV_USER_ID = EM1.USER_ID
+              LEFT JOIN TB_RPJTE_APR_REQ_M RM
+                ON AL.APR_REQ_ID = RM.APR_REQ_ID
+              LEFT JOIN TB_RPJTE_EMP_M EM2
+                ON RM.APR_REQ_USER_ID = EM2.USER_ID
+              LEFT JOIN TB_RPJTE_APR_TPL_M FM
+                ON RM.APR_TPL_ID = FM.APR_TPL_ID
+             WHERE AL.APR_LN_DIVS_CD = 'APPD'
+               AND AL.APR_REQ_ID = #{approvalRequestId.aprReqId}
+               AND AL.APR_LN_SEQ = #{approvalRequestId.aprLnSeq}
+         ]]>
+    </select>
+
+    <!-- Type3 용 : 최종 승인 알림 메일 발송용 조회 -->
+    <select id="selectApprovalApprovedMailSendInfo" resultType="com.flare.rap.approval.model.ApprovalType3ApprovedMailSendContentVO">
+        <![CDATA[
+            SELECT FN_GET_CD_OPT_VAL('SYS_CONFIG', 'MAIL_DEFALUT_FROM_ADDRESS', 1) AS FROM_ADDRESS
+                  ,CASE
+                     WHEN FN_GET_CD_OPT_VAL('SYS_CONFIG', 'SYS_ENV', 1) = 'DEV'
+                     THEN FN_GET_CD_OPT_VAL('SYS_CONFIG', 'MAIL_TEST_TO_ADDRESS', 1)
+                     ELSE EM2.EML_DMN_IFO_NM
+                   END AS TO_ADDRESS  -- 기안자에게 메일 발송
+                  ,'[' || FN_GET_CD_NM('SYS_CONFIG', 'SYSTEM_NAME', #{session.langCd}) || '] ' || RM.APR_REQ_TIT_NM AS SUBJECT
+                  ,FM.APR_TPL_NM
+                  ,RM.APR_REQ_TIT_NM
+                  ,FN_GET_LOCAL_TIME_D(#{session.timeZoneCd}, AL.APR_APRV_DTM, 'YYYY.MM.DD HH24:MI:SS') AS APR_APRV_DTM
+                  ,FN_GET_USER_INFO(RM.APR_REQ_USER_ID, #{session.langCd}, 1) AS APR_REQ_USER_NM
+                  ,FN_GET_USER_INFO(AL.APR_APRV_USER_ID, #{session.langCd}, 1) AS APR_APRV_USER_NM
+                  ,RM.APR_WAIT_SCRN_URL AS LINK_URL
+              FROM TB_RPJTE_APR_LN_M AL
+              LEFT JOIN TB_RPJTE_EMP_M EM1
+                ON AL.APR_APRV_USER_ID = EM1.USER_ID
+              LEFT JOIN TB_RPJTE_APR_REQ_M RM
+                ON AL.APR_REQ_ID = RM.APR_REQ_ID
+              LEFT JOIN TB_RPJTE_EMP_M EM2
+                ON RM.APR_REQ_USER_ID = EM2.USER_ID
+              LEFT JOIN TB_RPJTE_APR_TPL_M FM
+                ON RM.APR_TPL_ID = FM.APR_TPL_ID
+             WHERE AL.APR_LN_DIVS_CD = 'APPD'
+               AND AL.APR_REQ_ID = #{approvalRequestId.aprReqId}
+               AND AL.APR_LN_SEQ = #{approvalRequestId.aprLnSeq}
+         ]]>
+    </select>
+
+    <!-- Type3 용 : 최종 승인 알림(통보자용) 메일 발송용 조회. -->
+    <select id="selectApprovalNoticeMailSendInfo" resultType="com.flare.rap.approval.model.ApprovalType3ApprovedMailSendContentVO">
+        <![CDATA[
+            SELECT FN_GET_CD_OPT_VAL('SYS_CONFIG', 'MAIL_DEFALUT_FROM_ADDRESS', 1) AS FROM_ADDRESS
+                  ,'' AS TO_ADDRESS  -- 통보자에게 발송
+                  ,'[' || FN_GET_CD_NM('SYS_CONFIG', 'SYSTEM_NAME', #{session.langCd}) || '] ' || RM.APR_REQ_TIT_NM AS SUBJECT
+                  ,FM.APR_TPL_NM
+                  ,RM.APR_REQ_TIT_NM
+                  ,FN_GET_LOCAL_TIME_D(#{session.timeZoneCd}, AL.APR_APRV_DTM, 'YYYY.MM.DD HH24:MI:SS') AS APR_APRV_DTM
+                  ,FN_GET_USER_INFO(RM.APR_REQ_USER_ID, #{session.langCd}, 1) AS APR_REQ_USER_NM
+                  ,FN_GET_USER_INFO(AL.APR_APRV_USER_ID, #{session.langCd}, 1) AS APR_APRV_USER_NM
+                  ,RM.APR_WAIT_SCRN_URL AS LINK_URL
+              FROM TB_RPJTE_APR_LN_M AL
+              LEFT JOIN TB_RPJTE_EMP_M EM1
+                ON AL.APR_APRV_USER_ID = EM1.USER_ID
+              LEFT JOIN TB_RPJTE_APR_REQ_M RM
+                ON AL.APR_REQ_ID = RM.APR_REQ_ID
+              LEFT JOIN TB_RPJTE_EMP_M EM2
+                ON RM.APR_REQ_USER_ID = EM2.USER_ID
+              LEFT JOIN TB_RPJTE_APR_TPL_M FM
+                ON RM.APR_TPL_ID = FM.APR_TPL_ID
+             WHERE AL.APR_LN_DIVS_CD = 'APPD'
+               AND AL.APR_REQ_ID = #{approvalRequestId.aprReqId}
+               AND AL.APR_LN_SEQ = #{approvalRequestId.aprLnSeq}
+         ]]>
+    </select>
+
+
+    <!-- Type3 용 : 최종 승인 알림(통보자용) 메일 발송용 조회. -->
+    <select id="selectNoticeMailMailList" resultType="String">
+        <![CDATA[
+            SELECT CASE
+                     WHEN FN_GET_CD_OPT_VAL('SYS_CONFIG', 'SYS_ENV', 1) = 'DEV'
+                     THEN FN_GET_CD_OPT_VAL('SYS_CONFIG', 'MAIL_TEST_TO_ADDRESS', 1)
+                     ELSE ZE.EML_DMN_IFO_NM
+                   END AS TO_ADDRESS
+              FROM TB_RPJTE_APR_LN_M ZL
+              JOIN TB_RPJTE_EMP_M ZE
+                ON ZL.APR_APRV_USER_ID = ZE.USER_ID
+             WHERE ZL.APR_REQ_ID = #{approvalRequestId.aprReqId}
+               AND ZL.APR_LN_DIVS_CD = 'INFR'
+         ]]>
+    </select>
+
+
+
+    <!-- Type3 용 : 결재라인 결재 Update -->
+    <update id="updateApprovalLineEmlSndoSeq">
+        <![CDATA[
+            UPDATE TB_RPJTE_APR_LN_M
+               SET EML_SNDO_SEQ  = #{emlSndoSeq}
+             WHERE APR_REQ_ID = #{nextApprovalLine.aprReqId}
+               AND APR_LN_SEQ = #{nextApprovalLine.aprLnSeq}
+        ]]>
+    </update>
+
+
+
+
+
+</mapper>

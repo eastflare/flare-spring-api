@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.flare.rap.role.repository.RoleDepartmentRepository">
+    <select id="selectRolesByDeptCd" resultType="String">
+        SELECT ROLE_CD
+          FROM TB_RPJTE_ROLE_DEPT_M
+         WHERE DEPT_CD = #{deptCd}
+    </select>
+
+    <select id="selectDepartmentsByRoleCd" resultType="com.flare.rap.department.model.DepartmentVO">
+        SELECT R.DEPT_CD
+              ,R.COP_CD
+              ,R.DEPT_NM
+              ,R.DEPT_ENG_NM
+              ,R.DEPT_CNG_NM
+              ,R.TEM_LDR_USER_ID
+              ,R.UPPR_DEPT_CD
+              ,R.USE_YN
+         FROM TB_RPJTE_DEPT_M R
+        WHERE R.DEPT_CD IN (
+                                SELECT RD.DEPT_CD
+                                FROM TB_RPJTE_ROLE_DEPT_M RD
+                                WHERE RD.ROLE_CD = #{roleCd}
+                            )
+    </select>
+
+    <insert id="insertRoleDepartment">
+        MERGE INTO TB_RPJTE_ROLE_DEPT_M RD
+             USING (
+                      SELECT #{roleCd} AS ROLE_CD
+                            ,#{deptCd} AS DEPT_CD
+                        FROM DUAL
+                    ) N
+                ON ( RD.ROLE_CD = N.ROLE_CD AND RD.DEPT_CD = N.DEPT_CD )
+        WHEN NOT MATCHED THEN
+                       INSERT (
+                                ROLE_CD
+                                ,DEPT_CD
+                                ,DATA_INS_USER_ID
+                                ,DATA_INS_USER_IP
+                                ,DATA_INS_DTM
+                                ,DATA_UPD_USER_ID
+                                ,DATA_UPD_USER_IP
+                                ,DATA_UPD_DTM
+                              )
+                       VALUES (
+                                #{roleCd}
+                                ,#{deptCd}
+                                ,#{session.userId}
+                                ,#{session.userIp}
+                                ,SYSDATE
+                                ,#{session.userId}
+                                ,#{session.userIp}
+                                ,SYSDATE
+                              )
+    </insert>
+
+    <delete id="deleteRoleDepartment">
+        DELETE
+          FROM TB_RPJTE_ROLE_DEPT_M RD
+         WHERE RD.ROLE_CD = #{roleCd}
+           AND DEPT_CD IN
+            <foreach collection="deptCdList" item="deptCd" open="(" separator="," close=")">
+                #{deptCd}
+            </foreach>
+    </delete>
+
+</mapper>

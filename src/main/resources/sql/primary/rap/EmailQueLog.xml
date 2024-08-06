@@ -1,0 +1,91 @@
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE mapper
+            PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+            "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+    <mapper namespace="com.flare.rap.mail.repository.EmailSendQueRepository">
+        <insert id="insertEmailSendQue">
+            <![CDATA[
+            INSERT INTO TB_RPJTE_EML_SNDO_QUE_M
+                (
+                     EML_SNDO_SEQ
+                    ,EML_TP_CD
+                    ,EML_TIT_NM
+                    ,EML_RCVR_LST_CTN
+                    ,SED_EMAL
+                    ,EML_SED_USER_NM
+                    ,SED_DTM
+                    ,EML_DTL_CTN
+                    ,APR_REQ_ID
+                    ,OPT_VAL_NM1
+                    ,DATA_INS_USER_ID
+                    ,DATA_INS_USER_IP
+                    ,DATA_INS_DTM
+                    ,DATA_UPD_USER_ID
+                    ,DATA_UPD_USER_IP
+                    ,DATA_UPD_DTM
+                )
+                SELECT #{email.emlSndoSeq}
+                      ,#{email.emlTpCd}
+                      ,#{email.emlTitNm}
+                      ,#{email.emlRcvrLstCtn}
+                      ,#{email.sedEmal}
+                      ,#{email.sedEmalNm}
+                      ,SYSDATE
+                      ,#{email.emlDtlCtn}
+                      ,#{email.aprReqId}
+                      ,#{email.optValNm1}
+                      ,#{session.userId}
+                      ,#{session.userIp}
+                      ,SYSDATE
+                      ,#{session.userId}
+                      ,#{session.userIp}
+                      ,SYSDATE
+                 FROM DUAL
+            ]]>
+        </insert>
+
+
+        <select id="selectEmlSndoQueSeq" resultType="long">
+            <![CDATA[
+                SELECT SEQ_EML_SNDO.NEXTVAL AS NEW_EML_SNDO_SEQ
+                 FROM DUAL
+            ]]>
+        </select>
+
+        <select id="selectEmailQueList" resultType="com.flare.rap.log.model.EmailLogResponseVO">
+            SELECT A.EML_SNDO_SEQ
+            ,A.EML_TP_CD
+            ,A.EML_RCVR_LST_CTN
+            ,A.EML_TIT_NM
+            ,A.SED_EMAL
+            ,A.EML_SED_USER_NM AS SED_EMAL_NM
+            ,TO_CHAR(A.SED_DTM, 'YYYY.MM.DD HH24:MI:SS') AS SED_DTM
+            ,A.EML_TRNM_STAT_CD
+            ,A.EML_TRNM_RLT_CTN
+            ,A.EML_DTL_CTN
+            ,A.APR_REQ_ID
+            ,A.OPT_VAL_NM1
+            ,A.OPT_VAL_NM2
+            ,A.OPT_VAL_NM3
+            ,A.OPT_VAL_NM4
+            ,A.OPT_VAL_NM5
+            ,A.DATA_INS_USER_ID
+            ,A.DATA_INS_USER_IP
+            ,A.DATA_INS_DTM
+            ,A.DATA_UPD_USER_ID
+            ,A.DATA_UPD_USER_IP
+            ,A.DATA_UPD_DTM
+            FROM TB_RPJTE_EML_SNDO_QUE_M A
+            WHERE EML_TRNM_RLT_CTN IS NULL
+        </select>
+
+        <update id="updateEmailQue">
+            UPDATE TB_RPJTE_EML_SNDO_QUE_M
+            SET EML_TRNM_STAT_CD = #{email.emlTrnmStatCd}
+              , EML_TRNM_RLT_CTN = #{email.emlTrnmRltCtn}
+            WHERE EML_SNDO_SEQ = #{email.emlSndoSeq}
+        </update>
+
+
+    </mapper>

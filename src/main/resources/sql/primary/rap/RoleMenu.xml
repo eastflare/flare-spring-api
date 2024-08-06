@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.flare.rap.role.repository.RoleMenuRepository">
+
+    <select id="selectMenusByRoleCd" resultType="com.flare.rap.menu.model.MenuResponseVO">
+        SELECT M.MNU_ID
+        ,M.MNU_NM
+        ,M.MNU_URL
+        ,M.MNU_LV_NO
+        ,M.UPPR_MNU_ID
+        ,M.SORT_ORD
+        ,M.USE_YN
+        ,M.MNU_DESC
+        ,M.MNU_EPS_YN
+        ,M.MNU_OPT_VAL_CTN1
+        ,M.MNU_OPT_VAL_CTN2
+        ,M.MNU_OPT_VAL_CTN3
+        ,M.MNU_OPT_VAL_CTN4
+        ,M.MNU_OPT_VAL_CTN5
+        ,M.MSG_CTN
+        FROM TB_RPJTE_MENU_M M
+        WHERE M.MNU_ID IN ( SELECT RM.MNU_ID
+        FROM TB_RPJTE_ROLE_MENU_M RM
+        WHERE RM.ROLE_CD = #{roleCd} )
+        ORDER BY M.MNU_ID
+
+    </select>
+
+    <delete id="deleteRoleMenuByRoleCd">
+        DELETE
+        FROM TB_RPJTE_ROLE_MENU_M
+        WHERE ROLE_CD = #{roleCd}
+    </delete>
+
+    <insert id="insertRoleMenusByRoleCd">
+        <if  test='mnuIdList !=null and mnuIdList.size > 0'>
+            <foreach collection="mnuIdList" item="mnuId" open="INSERT ALL" close="SELECT * FROM DUAL">
+                INTO TB_RPJTE_ROLE_MENU_M
+                (
+                ROLE_CD
+                ,MNU_ID
+                ,DATA_INS_USER_ID, DATA_INS_USER_IP, DATA_INS_DTM
+                ,DATA_UPD_USER_ID, DATA_UPD_USER_IP, DATA_UPD_DTM
+                )
+                VALUES
+                (
+                #{roleCd}
+                ,#{mnuId}
+                ,#{session.userId}, #{session.userIp}, SYSDATE
+                ,#{session.userId}, #{session.userIp}, SYSDATE
+                )
+            </foreach>
+        </if>
+    </insert>
+
+    <select id="selectMenusByRoleCds" resultType="com.flare.rap.menu.model.MenuResponseVO">
+        SELECT M.MNU_ID
+        ,M.MNU_NM
+        ,M.MNU_URL
+        ,M.MNU_LV_NO
+        ,M.UPPR_MNU_ID
+        ,M.SORT_ORD
+        ,M.MNU_EPS_YN
+        ,M.MSG_CTN
+        ,M.MNU_OPT_VAL_CTN1
+        ,M.MNU_OPT_VAL_CTN2
+        ,M.MNU_OPT_VAL_CTN3
+        ,M.MNU_OPT_VAL_CTN4
+        ,M.MNU_OPT_VAL_CTN5
+        ,M.USE_YN
+        ,M.MNU_DESC
+        FROM TB_RPJTE_MENU_M M
+        WHERE M.MNU_ID IN
+        (
+        SELECT DISTINCT RM.MNU_ID
+        FROM TB_RPJTE_ROLE_MENU_M RM
+        WHERE RM.ROLE_CD IN
+        <foreach collection="roleCds" item="roleCd" separator="," open="(" close=")">
+            #{roleCd}
+        </foreach>
+        )
+        START WITH M.MNU_ID = '000000'
+        CONNECT BY PRIOR M.MNU_ID = M.UPPR_MNU_ID
+        ORDER SIBLINGS BY M.SORT_ORD
+    </select>
+</mapper>

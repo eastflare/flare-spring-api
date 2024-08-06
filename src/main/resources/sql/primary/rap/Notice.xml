@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.flare.rap.notice.repository.NoticeRepository">
+
+    <select id="selectNoticePostsCount" resultType="int">
+        SELECT COUNT(1) AS TOTAL_COUNT
+        FROM TB_RPJTE_BBS_M B
+        WHERE B.USE_YN ='Y'
+          AND B.NOTI_USE_YN = 'Y'
+        <if test='bbsTpCd != null and bbsTpCd != ""'>
+          AND B.BBS_TP_CD = #{bbsTpCd}
+        </if>
+        <if test='bbmTitNm != null and bbmTitNm != ""'>
+          AND B.BBM_TIT_NM LIKE '%' || #{bbmTitNm} || '%'
+        </if>
+        <if test='bbmCtn != null and bbmCtn != ""'>
+          AND B.BBM_CTN LIKE '%' || #{bbmCtn} || '%'
+        </if>
+    </select>
+
+    <select id="selectNoticePosts" resultType="com.flare.rap.notice.model.NoticePostResponseVO">
+        SELECT B.BBM_NO
+              ,rank() over (order by B.DATA_INS_DTM DESC) AS RANK
+              ,B.BBS_TP_CD
+              ,FN_GET_CD_NM('BBS_TP_CD', B.BBS_TP_CD, #{langCd}) AS BBS_TP_NM
+              ,B.BBM_TIT_NM
+              ,B.BBM_CTN
+              ,B.ATCH_FILE_GR_ID
+              ,CASE WHEN B.ATCH_FILE_GR_ID IS NULL THEN 0
+                    WHEN EXISTS (SELECT 1
+                                   FROM TB_RPJTE_ATCH_FILE_M F
+                                  WHERE F.ATCH_FILE_GR_ID = B.ATCH_FILE_GR_ID
+                                    AND F.USE_YN = 'Y') THEN 1
+                    ELSE 0
+                     END AS ATCH_FILE_EXIST
+              ,B.DATA_INS_USER_ID
+              ,FN_GET_USER_INFO(B.DATA_INS_USER_ID, #{langCd}, 1) AS DATA_INS_USER_INFO
+              ,B.DATA_INS_DTM
+              ,B.BBM_VWCT
+              ,B.POUP_EPS_NUSE_DDN
+              ,CASE WHEN EXISTS (SELECT 1 FROM TB_RPJTE_MNU_ACES_LOG_M G WHERE G.MNU_ID = '/system/notice/' || B.BBM_NO AND G.CONT_USER_ID = B.DATA_INS_USER_ID ) THEN 'Y'
+                    ELSE 'N'
+                END AS READ_YN
+          FROM TB_RPJTE_BBS_M B
+         WHERE B.USE_YN ='Y'
+           AND B.NOTI_USE_YN = 'Y'
+        <if test='noticeCondition.bbsTpCd != null and noticeCondition.bbsTpCd != ""'>
+           AND B.BBS_TP_CD = #{noticeCondition.bbsTpCd}
+        </if>
+        <if test='noticeCondition.bbmTitNm != null and noticeCondition.bbmTitNm != ""'>
+           AND B.BBM_TIT_NM LIKE '%' || #{noticeCondition.bbmTitNm} || '%'
+        </if>
+        <if test='noticeCondition.bbmCtn != null and noticeCondition.bbmCtn != ""'>
+           AND B.BBM_CTN LIKE '%' || #{noticeCondition.bbmCtn} || '%'
+        </if>
+         ORDER BY BBM_NO DESC
+        OFFSET #{noticeCondition.start} ROWS FETCH NEXT #{noticeCondition.pageSize} ROWS ONLY
+    </select>
+
+    <select id="selectNoticePost" resultType="com.flare.rap.notice.model.NoticePostDetailVO">
+        SELECT B.BBM_NO
+              ,B.BBS_TP_CD
+              ,FN_GET_CD_NM('BBS_TP_CD', B.BBS_TP_CD, #{langCd}) AS BBS_TP_NM
+              ,B.BBM_TIT_NM
+              ,B.BBM_CTN
+              ,B.ATCH_FILE_GR_ID
+              ,B.BBM_VWCT
+              ,B.PTUP_END_DT
+              ,B.POUP_ST_DTM
+              ,B.POUP_END_DTM
+              ,B.PTUP_TGT_COP_CD
+              ,FN_GET_CD_NM('COP_CD', B.PTUP_TGT_COP_CD, #{langCd}) AS PTUP_TGT_COP_NM
+              ,B.POUP_EPS_NUSE_DDN
+              ,B.DATA_INS_USER_ID
+              ,B.DATA_INS_DTM
+              ,B.DATA_UPD_USER_ID
+              ,B.DATA_UPD_DTM
+              ,C.EMP_NM AS DATA_UPD_USER_NAME
+          FROM TB_RPJTE_BBS_M B
+          LEFT OUTER JOIN TB_RPJTE_EMP_M C ON B.DATA_UPD_USER_ID = C.USER_ID
+        WHERE B.BBM_NO = #{bbmNo}
+           AND B.USE_YN ='Y'
+           AND B.NOTI_USE_YN = 'Y'
+    </select>
+
+    <select id="selectNoticePopupPost" resultType="com.flare.rap.notice.model.NoticePostDetailVO">
+        SELECT B.BBM_NO
+        ,B.BBM_TIT_NM
+        ,B.BBM_CTN
+        ,B.POUP_EPS_NUSE_DDN
+        FROM TB_RPJTE_BBS_M B
+        WHERE 1=1
+        AND B.USE_YN ='Y'
+        AND B.NOTI_USE_YN = 'Y'
+        AND B.POUP_USE_YN = 'Y'
+        AND B.PTUP_END_DT > TO_CHAR(SYSDATE, 'YYYYMMDD')
+        <![CDATA[
+        AND TO_CHAR(B.POUP_ST_DTM, 'YYYY-MM-DD HH24:MI:SS')  <=  TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS')
+        AND TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS') <= TO_CHAR(B.POUP_END_DTM, 'YYYY-MM-DD HH24:MI:SS')
+        ]]>
+    </select>
+
+    <update id="updateNoticePostVwct">
+        UPDATE TB_RPJTE_BBS_M
+           SET BBM_VWCT = BBM_VWCT + 1
+         WHERE BBM_NO = #{bbmNo}
+           AND USE_YN ='Y'
+           AND NOTI_USE_YN = 'Y'
+    </update>
+
+    <insert id="insertNoticePost">
+        INSERT INTO TB_RPJTE_BBS_M
+        (
+        BBM_NO
+        ,BBS_TP_CD
+        ,BBM_SORT_ORD
+        ,BBM_TIT_NM
+        ,BBM_CTN
+        ,SMRY_CTN
+        ,ATCH_FILE_GR_ID
+        ,HTAG_CTN
+        ,IMPT_YN
+        ,USE_YN
+        ,BBM_VWCT
+        ,PTUP_END_DT
+        ,NOTI_USE_YN
+        ,POUP_USE_YN
+        ,POUP_ST_DTM
+        ,POUP_END_DTM
+        ,BBM_CLSF_CD
+        ,PTUP_TGT_COP_CD
+        ,POUP_EPS_NUSE_DDN
+        ,DATA_INS_USER_ID
+        ,DATA_INS_USER_IP
+        ,DATA_INS_DTM
+        ,DATA_UPD_USER_ID
+        ,DATA_UPD_USER_IP
+        ,DATA_UPD_DTM
+        )
+        VALUES
+        (
+        (SELECT NVL(MAX(BBM_NO),0) + 1 FROM TB_RPJTE_BBS_M)
+        ,#{post.bbsTpCd}
+        ,(SELECT NVL(MAX(BBM_SORT_ORD),0) + 1 FROM TB_RPJTE_BBS_M)
+        ,#{post.bbmTitNm}
+        ,#{post.bbmCtn}
+        ,'요약내용'
+        ,#{post.atchFileGrId}
+        ,'해시태그내용'
+        ,'N'
+        ,'Y'
+        ,0
+        ,#{post.ptupEndDt}
+        ,'Y'
+        ,'Y'
+        ,TO_DATE(#{post.poupStDtm}, 'YYYY-MM-DD HH24:MI:SS')
+        ,TO_DATE(#{post.poupEndDtm}, 'YYYY-MM-DD HH24:MI:SS')
+        ,'게시글분류코드'
+        ,#{post.ptupTgtCopCd}
+        ,TO_NUMBER(#{post.poupEpsNuseDdn})
+        ,#{session.userId}
+        ,#{session.userIp}
+        ,SYSDATE
+        ,#{session.userId}
+        ,#{session.userIp}
+        ,SYSDATE
+        )
+
+    </insert>
+
+    <update id="updateNoticePost">
+        UPDATE TB_RPJTE_BBS_M
+           SET BBS_TP_CD = #{post.bbsTpCd}
+              ,PTUP_TGT_COP_CD = #{post.ptupTgtCopCd}
+              ,PTUP_END_DT = #{post.ptupEndDt}
+              ,BBM_TIT_NM = #{post.bbmTitNm}
+              ,BBM_CTN = #{post.bbmCtn}
+              ,ATCH_FILE_GR_ID = #{post.atchFileGrId}
+              ,POUP_ST_DTM  = TO_DATE(#{post.poupStDtm}, 'YYYY-MM-DD HH24:MI:SS')
+              ,POUP_END_DTM  = TO_DATE(#{post.poupEndDtm}, 'YYYY-MM-DD HH24:MI:SS')
+              ,POUP_EPS_NUSE_DDN = TO_NUMBER(#{post.poupEpsNuseDdn})
+              ,DATA_UPD_USER_ID = #{session.userId}
+              ,DATA_UPD_USER_IP = #{session.userIp}
+              ,DATA_UPD_DTM = SYSDATE
+         WHERE BBM_NO = #{post.bbmNo}
+           AND DATA_INS_USER_ID = #{session.userId}
+           AND USE_YN ='Y'
+           AND NOTI_USE_YN = 'Y'
+    </update>
+
+    <update id="updateDisableNoticePost">
+        UPDATE TB_RPJTE_BBS_M
+           SET USE_YN = 'N'
+              ,DATA_UPD_USER_ID = #{session.userId}
+              ,DATA_UPD_USER_IP = #{session.userIp}
+              ,DATA_UPD_DTM = SYSDATE
+         WHERE BBM_NO = #{bbmNo}
+           AND DATA_INS_USER_ID = #{session.userId}
+           AND USE_YN ='Y'
+           AND NOTI_USE_YN = 'Y'
+    </update>
+
+</mapper>

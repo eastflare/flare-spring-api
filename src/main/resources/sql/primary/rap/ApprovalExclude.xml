@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.flare.rap.approval.repository.ApprovalExcludeRepository">
+    <select id="selectApprovalExcludeMasters" resultType="com.flare.rap.approval.model.ApprovalExcludeMasterVO">
+        SELECT M.APR_EXC_TGT_ID
+              ,M.APR_EXC_NM
+              ,M.DATA_INS_USER_ID
+              ,M.DATA_INS_USER_IP
+              ,M.DATA_INS_DTM
+              ,M.DATA_UPD_USER_ID
+              ,M.DATA_UPD_USER_IP
+              ,M.DATA_UPD_DTM
+          FROM TB_RPJTE_APR_RULE_EXC_M M
+         WHERE 1=1
+         <if test='aprExcNm != null and aprExcNm != ""'>
+           AND M.APR_EXC_NM LIKE '%' || #{aprExcNm} || '%'
+         </if>
+         ORDER BY TO_NUMBER(M.APR_EXC_TGT_ID)
+    </select>
+
+    <select id="selectApprovalExcludeDetails" resultType="com.flare.rap.approval.model.ApprovalExcludeDetailVO">
+        <![CDATA[
+            SELECT D.APR_EXC_TGT_ID
+                  ,D.APR_EXC_SEQ
+                  ,D.APR_EXC_DIVS_CD
+                  ,CASE WHEN D.APR_EXC_DIVS_CD = 'USER'
+                        THEN D.APR_EXC_USER_ID
+                        WHEN D.APR_EXC_DIVS_CD = 'JTI'
+                        THEN D.APR_EXC_JTI_CD
+                        WHEN D.APR_EXC_DIVS_CD = 'JPS'
+                        THEN D.APR_EXC_JPS_CD
+                        ELSE NULL
+                    END AS APR_EXC_USER_ID
+                  ,D.DATA_INS_USER_ID
+                  ,D.DATA_INS_USER_IP
+                  ,D.DATA_INS_DTM
+                  ,D.DATA_UPD_USER_ID
+                  ,D.DATA_UPD_USER_IP
+                  ,D.DATA_UPD_DTM
+                  ,CASE WHEN D.APR_EXC_DIVS_CD = 'USER'
+                        THEN FN_GET_USER_INFO(D.APR_EXC_USER_ID, #{session.langCd})
+                        WHEN D.APR_EXC_DIVS_CD = 'JTI'
+                        THEN D.APR_EXC_JTI_CD || '::' || FN_GET_CD_NM('JTI_CD', D.APR_EXC_JTI_CD, #{session.langCd})
+                        WHEN D.APR_EXC_DIVS_CD = 'JPS'
+                        THEN D.APR_EXC_JPS_CD || '::' || FN_GET_CD_NM('JPS_CD', D.APR_EXC_JPS_CD, #{session.langCd})
+                        ELSE NULL
+                    END AS APR_EXC_USER_INFO
+              FROM TB_RPJTE_APR_RULE_EXC_D D
+             WHERE D.APR_EXC_TGT_ID = #{aprExcTgtId}
+             ORDER BY D.APR_EXC_SEQ
+         ]]>
+    </select>
+
+    <select id="selectMaxMasterId" resultType="long">
+        SELECT MAX(TO_NUMBER(APR_EXC_TGT_ID))
+          FROM TB_RPJTE_APR_RULE_EXC_M
+    </select>
+
+    <insert id="insertApprovalExcludeMaster">
+        INSERT INTO TB_RPJTE_APR_RULE_EXC_M
+        (
+             APR_EXC_TGT_ID
+            ,APR_EXC_NM
+            ,DATA_INS_USER_ID
+            ,DATA_INS_USER_IP
+            ,DATA_INS_DTM
+            ,DATA_UPD_USER_ID
+            ,DATA_UPD_USER_IP
+            ,DATA_UPD_DTM
+        )
+        VALUES
+        (
+            NVL((
+             SELECT MAX(TO_NUMBER(APR_EXC_TGT_ID)) + 1
+               FROM TB_RPJTE_APR_RULE_EXC_M
+             ), 1)
+            ,#{master.aprExcNm}
+            ,#{session.userId}
+            ,#{session.userId}
+            ,SYSDATE
+            ,#{session.userId}
+            ,#{session.userId}
+            ,SYSDATE
+        )
+    </insert>
+
+    <update id="updateApprovalExcludeMaster">
+        UPDATE TB_RPJTE_APR_RULE_EXC_M
+           SET APR_EXC_NM = #{master.aprExcNm}
+              ,DATA_UPD_USER_ID = #{session.userId}
+              ,DATA_UPD_USER_IP = #{session.userId}
+              ,DATA_UPD_DTM = SYSDATE
+         WHERE APR_EXC_TGT_ID = #{master.aprExcTgtId}
+    </update>
+
+    <delete id="deleteApprovalExcludeMaster">
+        DELETE
+          FROM TB_RPJTE_APR_RULE_EXC_M
+         WHERE APR_EXC_TGT_ID = #{aprExcTgtId}
+    </delete>
+
+    <delete id="deleteDetailsByAprExcTgtId">
+        DELETE
+          FROM TB_RPJTE_APR_RULE_EXC_D
+         WHERE APR_EXC_TGT_ID = #{aprExcTgtId}
+    </delete>
+
+    <insert id="insertApprovalExcludeDetail">
+        INSERT INTO TB_RPJTE_APR_RULE_EXC_D
+        (
+             APR_EXC_TGT_ID
+            ,APR_EXC_SEQ
+            ,APR_EXC_DIVS_CD
+            ,APR_EXC_USER_ID
+            ,APR_EXC_JTI_CD
+            ,APR_EXC_JPS_CD
+            ,DATA_INS_USER_ID
+            ,DATA_INS_USER_IP
+            ,DATA_INS_DTM
+            ,DATA_UPD_USER_ID
+            ,DATA_UPD_USER_IP
+            ,DATA_UPD_DTM
+        )
+        VALUES
+        (
+            <choose>
+                <when test='detail.aprExcTgtId != null and detail.aprExcTgtId != ""'>
+                    #{detail.aprExcTgtId}
+                    ,NVL(
+                    (
+                    SELECT MAX(APR_EXC_SEQ) + 1
+                    FROM TB_RPJTE_APR_RULE_EXC_D
+                    WHERE APR_EXC_TGT_ID = #{detail.aprExcTgtId}
+                    ) ,1)
+                </when>
+                <otherwise>
+                    NVL((
+                    SELECT MAX(TO_NUMBER(APR_EXC_TGT_ID))
+                    FROM TB_RPJTE_APR_RULE_EXC_M
+                    ), 1)
+                    ,NVL((
+                        SELECT MAX(APR_EXC_SEQ) + 1
+                        FROM TB_RPJTE_APR_RULE_EXC_D
+                        WHERE APR_EXC_TGT_ID = NVL((
+                            SELECT MAX(TO_NUMBER(APR_EXC_TGT_ID))
+                            FROM TB_RPJTE_APR_RULE_EXC_M
+                        ), 1)
+                    ) ,1)
+                </otherwise>
+            </choose>
+            ,#{detail.aprExcDivsCd}
+            ,CASE WHEN #{detail.aprExcDivsCd} = 'USER' THEN #{detail.aprExcUserId} ELSE NULL END
+            ,CASE WHEN #{detail.aprExcDivsCd} = 'JTI' THEN #{detail.aprExcUserId} ELSE NULL END
+            ,CASE WHEN #{detail.aprExcDivsCd} = 'JPS' THEN #{detail.aprExcUserId} ELSE NULL END
+            ,#{session.userId}
+            ,#{session.userId}
+            ,SYSDATE
+            ,#{session.userId}
+            ,#{session.userId}
+            ,SYSDATE
+        )
+    </insert>
+
+    <update id="updateApprovalExcludeDetail">
+        UPDATE TB_RPJTE_APR_RULE_EXC_D
+           SET APR_EXC_DIVS_CD = #{detail.aprExcDivsCd}
+              ,APR_EXC_USER_ID = CASE WHEN #{detail.aprExcDivsCd} = 'USER' THEN #{detail.aprExcUserId} ELSE NULL END
+              ,APR_EXC_JTI_CD = CASE WHEN #{detail.aprExcDivsCd} = 'JTI' THEN #{detail.aprExcUserId} ELSE NULL END
+              ,APR_EXC_JPS_CD = CASE WHEN #{detail.aprExcDivsCd} = 'JPS' THEN #{detail.aprExcUserId} ELSE NULL END
+              ,DATA_UPD_USER_ID = #{session.userId}
+              ,DATA_UPD_USER_IP = #{session.userId}
+              ,DATA_UPD_DTM = SYSDATE
+         WHERE APR_EXC_TGT_ID = #{detail.aprExcTgtId}
+           AND APR_EXC_SEQ = #{detail.aprExcSeq}
+    </update>
+
+    <delete id="deleteApprovalExcludeDetail">
+        DELETE
+          FROM TB_RPJTE_APR_RULE_EXC_D
+         WHERE APR_EXC_TGT_ID = #{detail.aprExcTgtId}
+           AND APR_EXC_SEQ = #{detail.aprExcSeq}
+    </delete>
+
+</mapper>

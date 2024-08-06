@@ -1,10 +1,141 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.flare.rap.api.repository.ApiUrlRepository">
     <select id="selectApiUrls" resultType="com.flare.rap.api.model.ApiUrlResponseVO">
-        SELECT USER_ID AS API_ID
-             , USER_NM AS API_NM
-          FROM TB_FLARE_USER_M
+        SELECT A.API_ID
+              ,A.API_NM
+              ,A.API_URL
+              ,A.HTTP_MTHD_CD
+              ,A.USE_YN
+              ,FN_GET_USER_NM(A.DATA_INS_USER_ID, #{session.langCd}, 'ID') AS DATA_INS_USER_NAME
+              ,TO_CHAR(A.DATA_INS_DTM, 'YYYY.MM.DD HH24:MI:SS') AS DATA_INS_DTM
+              ,FN_GET_USER_NM(A.DATA_UPD_USER_ID, #{session.langCd}, 'ID') AS DATA_UPD_USER_NAME
+              ,TO_CHAR(A.DATA_UPD_DTM, 'YYYY.MM.DD HH24:MI:SS') AS DATA_UPD_DTM
+        FROM TB_RPJTE_API_M A
+        WHERE 1=1
+        <if test='apiUrlCondition.apiNm != null and apiUrlCondition.apiNm != ""'>
+            AND A.API_NM LIKE '%' || #{apiUrlCondition.apiNm} || '%'
+        </if>
+        <if test='apiUrlCondition.apiUrl != null and apiUrlCondition.apiUrl != ""'>
+            AND A.API_URL LIKE '%' || #{apiUrlCondition.apiUrl} || '%'
+        </if>
+        <if test='apiUrlCondition.useYn != null and apiUrlCondition.useYn != ""'>
+            AND A.USE_YN LIKE '%' || #{apiUrlCondition.useYn} || '%'
+        </if>
     </select>
+
+    <insert id="insertApiUrl">
+        INSERT INTO TB_RPJTE_API_M
+        (
+             API_ID
+            ,API_NM
+            ,API_URL
+            ,HTTP_MTHD_CD
+            ,USE_YN
+            ,DATA_INS_USER_ID
+            ,DATA_INS_USER_IP
+            ,DATA_INS_DTM
+            ,DATA_UPD_USER_ID
+            ,DATA_UPD_USER_IP
+            ,DATA_UPD_DTM
+        )
+        VALUES
+            (
+             #{apiUrl.apiId}
+            ,#{apiUrl.apiNm}
+            ,#{apiUrl.apiUrl}
+            ,#{apiUrl.httpMthdCd}
+            ,#{apiUrl.useYn}
+            ,#{session.userId}
+            ,#{session.userIp}
+            ,SYSDATE
+            ,#{session.userId}
+            ,#{session.userIp}
+            ,SYSDATE
+            )
+    </insert>
+
+    <update id="updateApiUrl">
+        UPDATE TB_RPJTE_API_M
+           SET API_NM = #{apiUrl.apiNm}
+              ,API_URL = #{apiUrl.apiUrl}
+              ,HTTP_MTHD_CD = #{apiUrl.httpMthdCd}
+              ,USE_YN = #{apiUrl.useYn}
+              ,DATA_UPD_USER_ID = #{session.userId}
+              ,DATA_UPD_USER_IP = #{session.userIp}
+              ,DATA_UPD_DTM = SYSDATE
+        WHERE API_ID = #{apiUrl.apiId}
+    </update>
+
+    <delete id="deleteApiUrl" parameterType="com.flare.rap.api.model.ApiUrlRequestVO">
+        DELETE
+          FROM TB_RPJTE_API_M
+         WHERE API_ID = #{apiId}
+    </delete>
+
+    <select id="selectApiRoleCodes" parameterType="String" resultType="String">
+       SELECT ROLE_CD
+         FROM TB_RPJTE_ROLE_API_M
+        WHERE API_ID=#{apiId}
+    </select>
+
+    <delete id="deleteAllApiRoles" parameterType="String">
+        DELETE
+          FROM TB_RPJTE_ROLE_API_M
+         WHERE API_ID=#{apiId}
+    </delete>
+
+    <insert id="insertApiRoles">
+     INSERT INTO TB_RPJTE_ROLE_API_M (
+                  ROLE_CD
+                 ,API_ID
+                 ,DATA_INS_USER_ID
+                 ,DATA_INS_USER_IP
+                 ,DATA_INS_DTM
+                 ,DATA_UPD_USER_ID
+                 ,DATA_UPD_USER_IP
+                 ,DATA_UPD_DTM
+                 )
+        <foreach collection="roleCodes" item="roleCode" separator="UNION ALL">
+          SELECT #{roleCode}
+                 ,#{apiId}
+                 ,#{session.userId}
+                 ,#{session.userIp}
+                 ,SYSDATE
+                 ,#{session.userId}
+                 ,#{session.userIp}
+                 ,SYSDATE
+            FROM DUAL
+        </foreach>
+    </insert>
+
+    <select id="existApiUrl" parameterType="String" resultType="boolean">
+        SELECT
+          CASE WHEN EXISTS(SELECT 1
+                             FROM TB_RPJTE_API_M
+                            WHERE API_URL = #{apiUrl}
+                              AND HTTP_MTHD_CD = #{httpMthdCd})
+               THEN 1
+               ELSE 0  END
+        FROM DUAL
+    </select>
+
+    <select id="checkAccessibleApiUrlsByRoleCodes" resultType="boolean">
+        SELECT COUNT(1)
+          FROM TB_RPJTE_API_M A
+         WHERE A.API_ID IN (SELECT DISTINCT RA.API_ID
+                              FROM TB_RPJTE_ROLE_API_M RA
+                             WHERE RA.ROLE_CD IN
+                                <foreach collection="roleCodes" item="roleCd" open="(" close=")" separator=",">
+                                   #{roleCd}
+                                </foreach>
+                            )
+          AND A.API_URL = #{apiUrl}
+          AND A.HTTP_MTHD_CD = #{httpMthdCd}
+          AND A.USE_YN = 'Y'
+    </select>
+
 </mapper>

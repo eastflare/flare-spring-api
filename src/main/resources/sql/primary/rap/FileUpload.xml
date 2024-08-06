@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.flare.rap.file.repository.FileRepository">
+    <select id="selectFile" resultType="com.flare.rap.file.model.FileVO">
+         SELECT AF.ATCH_FILE_GR_ID
+                ,AF.ATCH_FILE_ID
+                ,AF.ATCH_FILE_NM
+                ,AF.SORT_ORD
+                ,AF.ATCH_FILE_SAVE_LOC_DIVS_CD
+                ,AF.ATCH_FILE_SAVE_NM
+                ,AF.ATCH_FILE_SIZE
+                ,AF.ATCH_FILE_EFNM_NM
+                ,AF.ATCH_FILE_SAVE_PATH_CTN
+                ,AF.ATCH_FILE_TP_CD
+                ,AF.OPT_VAL_CTN1
+                ,AF.OPT_VAL_CTN2
+                ,AF.OPT_VAL_CTN3
+                ,AF.OPT_VAL_CTN4
+                ,AF.OPT_VAL_CTN5
+                ,AF.USE_YN
+           FROM TB_RPJTE_ATCH_FILE_M AF
+          WHERE AF.ATCH_FILE_GR_ID = #{atchFileGrId}
+            AND AF.ATCH_FILE_ID = #{atchFileId}
+            AND AF.USE_YN = 'Y'
+    </select>
+
+    <select id="selectFiles" resultType="com.flare.rap.file.model.FileVO">
+        SELECT AF.ATCH_FILE_GR_ID
+              ,AF.ATCH_FILE_ID
+              ,AF.ATCH_FILE_NM
+              ,AF.SORT_ORD
+              ,AF.ATCH_FILE_SAVE_LOC_DIVS_CD
+              ,AF.ATCH_FILE_SAVE_NM
+              ,AF.ATCH_FILE_SIZE
+              ,AF.ATCH_FILE_EFNM_NM
+              ,AF.ATCH_FILE_SAVE_PATH_CTN
+              ,AF.ATCH_FILE_TP_CD
+              ,AF.OPT_VAL_CTN1
+              ,AF.OPT_VAL_CTN2
+              ,AF.OPT_VAL_CTN3
+              ,AF.OPT_VAL_CTN4
+              ,AF.OPT_VAL_CTN5
+              ,AF.USE_YN
+          FROM TB_RPJTE_ATCH_FILE_M AF
+         WHERE AF.ATCH_FILE_GR_ID = #{atchFileGrId} AND AF.USE_YN = 'Y'
+      ORDER BY AF.SORT_ORD
+    </select>
+
+   <insert id="upsertFile">
+        MERGE INTO TB_RPJTE_ATCH_FILE_M AF
+             USING (
+                    SELECT #{atchFileGrId} as ATCH_FILE_GR_ID
+                    ,#{fileUpload.atchFileId} as ATCH_FILE_ID
+                    FROM DUAL
+                    ) N
+                ON (
+                    AF.ATCH_FILE_GR_ID = N.ATCH_FILE_GR_ID
+                    AND AF.ATCH_FILE_ID = N.ATCH_FILE_ID
+                    AND #{fileUpload.useYn} = 'Y'
+                    )
+              WHEN MATCHED THEN
+        UPDATE SET ATCH_FILE_NM = #{fileUpload.atchFileNm}
+                ,ATCH_FILE_SAVE_LOC_DIVS_CD = #{fileUpload.atchFileSaveLocDivsCd}
+                ,ATCH_FILE_SAVE_NM = #{fileUpload.atchFileSaveNm}
+                ,ATCH_FILE_SIZE = #{fileUpload.atchFileSize}
+                ,ATCH_FILE_EFNM_NM = #{fileUpload.atchFileEfnmNm}
+                ,ATCH_FILE_SAVE_PATH_CTN = #{fileUpload.atchFileSavePathCtn}
+                ,ATCH_FILE_TP_CD = #{fileUpload.atchFileTpCd}
+                ,OPT_VAL_CTN1 = #{fileUpload.optValCtn1}
+                ,OPT_VAL_CTN2 = #{fileUpload.optValCtn2}
+                ,OPT_VAL_CTN3 = #{fileUpload.optValCtn3}
+                ,OPT_VAL_CTN4 = #{fileUpload.optValCtn4}
+                ,OPT_VAL_CTN5 = #{fileUpload.optValCtn5}
+                ,USE_YN = #{fileUpload.useYn}
+                ,DATA_UPD_USER_ID = #{session.userId}
+                ,DATA_UPD_USER_IP = #{session.userIp}
+                ,DATA_UPD_DTM = SYSDATE
+        WHEN NOT MATCHED THEN
+        INSERT (
+                ATCH_FILE_GR_ID
+                ,ATCH_FILE_ID
+                ,ATCH_FILE_NM
+                ,SORT_ORD
+                ,ATCH_FILE_SAVE_LOC_DIVS_CD
+                ,ATCH_FILE_SAVE_NM
+                ,ATCH_FILE_SIZE
+                ,ATCH_FILE_EFNM_NM
+                ,ATCH_FILE_SAVE_PATH_CTN
+                ,ATCH_FILE_TP_CD
+                ,OPT_VAL_CTN1
+                ,OPT_VAL_CTN2
+                ,OPT_VAL_CTN3
+                ,OPT_VAL_CTN4
+                ,OPT_VAL_CTN5
+                ,USE_YN
+                ,DATA_INS_USER_ID
+                ,DATA_INS_USER_IP
+                ,DATA_INS_DTM
+                ,DATA_UPD_USER_ID
+                ,DATA_UPD_USER_IP
+                ,DATA_UPD_DTM
+                )
+        VALUES (
+                #{atchFileGrId}
+                ,#{fileUpload.atchFileId}
+                ,#{fileUpload.atchFileNm}
+            <if test='fileUpload.sortOrd != null'>
+                ,#{fileUpload.sortOrd}
+            </if>
+            <if test='fileUpload.sortOrd == null'>
+                ,(SELECT NVL((MAX(SORT_ORD) + 1), 1)
+                    FROM TB_RPJTE_ATCH_FILE_M WHERE ATCH_FILE_GR_ID = #{atchFileGrId})
+            </if>
+                ,#{fileUpload.atchFileSaveLocDivsCd}
+                ,#{fileUpload.atchFileSaveNm}
+                ,#{fileUpload.atchFileSize}
+                ,#{fileUpload.atchFileEfnmNm}
+                ,#{fileUpload.atchFileSavePathCtn}
+                ,#{fileUpload.atchFileTpCd}
+                ,#{fileUpload.optValCtn1}
+                ,#{fileUpload.optValCtn2}
+                ,#{fileUpload.optValCtn3}
+                ,#{fileUpload.optValCtn4}
+                ,#{fileUpload.optValCtn5}
+                ,#{fileUpload.useYn}
+                ,#{session.userId}
+                ,#{session.userIp}
+                ,SYSDATE
+                ,#{session.userId}
+                ,#{session.userIp}
+                ,SYSDATE
+                )
+    </insert>
+
+    <update id="updateFiles">
+        <foreach collection="files" item="file" open="BEGIN" separator=";" close="; END;">
+           UPDATE TB_RPJTE_ATCH_FILE_M
+              SET USE_YN = #{file.useYn}
+                 ,SORT_ORD = #{file.sortOrd}
+                 ,DATA_UPD_USER_ID = #{session.userId}
+                 ,DATA_UPD_USER_IP = #{session.userIp}
+                 ,DATA_UPD_DTM = SYSDATE
+            WHERE ATCH_FILE_GR_ID = #{file.atchFileGrId}
+              AND ATCH_FILE_ID = #{file.atchFileId}
+        </foreach>
+    </update>
+
+    <update id="disableAllFiles">
+        UPDATE TB_RPJTE_ATCH_FILE_M
+           SET USE_YN = 'N'
+              ,DATA_UPD_USER_ID = #{session.userId}
+              ,DATA_UPD_USER_IP = #{session.userIp}
+              ,DATA_UPD_DTM = SYSDATE
+         WHERE ATCH_FILE_GR_ID = #{atchFileGrId}
+    </update>
+
+    <delete id="deleteFiles">
+        DELETE
+          FROM TB_RPJTE_ATCH_FILE_M AF
+         WHERE AF.ATCH_FILE_GR_ID = #{atchFileGrId}
+           AND AF.ATCH_FILE_ID IN
+        <foreach collection="atchFileIdList" item="atchFileId" open="(" separator="," close=")">
+            #{atchFileId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteFileGroup">
+        DELETE
+          FROM TB_RPJTE_ATCH_FILE_M AF
+         WHERE AF.ATCH_FILE_GR_ID = #{atchFileGrId}
+    </delete>
+    <select id="selectFilesForPDF" resultType="com.flare.rap.file.model.FileVO">
+        SELECT AF.ATCH_FILE_GR_ID
+             ,AF.ATCH_FILE_ID
+             ,AF.ATCH_FILE_NM
+             ,AF.SORT_ORD
+             ,AF.ATCH_FILE_SAVE_LOC_DIVS_CD
+             ,AF.ATCH_FILE_SAVE_NM
+             ,AF.ATCH_FILE_SIZE
+             ,AF.ATCH_FILE_EFNM_NM
+             ,AF.ATCH_FILE_SAVE_PATH_CTN
+             ,AF.ATCH_FILE_TP_CD
+             ,AF.OPT_VAL_CTN1
+             ,AF.OPT_VAL_CTN2
+             ,AF.OPT_VAL_CTN3
+             ,AF.OPT_VAL_CTN4
+             ,AF.OPT_VAL_CTN5
+             ,AF.USE_YN
+        FROM TB_RPJTE_ATCH_FILE_M AF
+        WHERE AF.ATCH_FILE_TP_CD = 'CONTRACT_COMPARE'
+        AND AF.OPT_VAL_CTN2  IS NULL
+        ORDER BY AF.SORT_ORD
+    </select>
+    <update id="updatePDFPathFiles">
+            UPDATE TB_RPJTE_ATCH_FILE_M
+            SET OPT_VAL_CTN2 = #{file.optValCtn2}
+            ,OPT_VAL_CTN3 = #{file.optValCtn3}
+            ,DATA_UPD_DTM = SYSDATE
+            WHERE ATCH_FILE_GR_ID = #{file.atchFileGrId}
+            AND ATCH_FILE_ID = #{file.atchFileId}
+    </update>
+</mapper>

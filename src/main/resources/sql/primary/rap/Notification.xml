@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.flare.rap.notification.repository.NotificationRepository">
+
+    <select id="selectNotificationGroups" resultType="com.flare.rap.notification.model.NotificationGroupResponseVO">
+         SELECT NTM.NTDK_ID
+               ,NTM.NTDK_NM
+               ,NTM.NTDK_DESC
+               ,NTM.USE_YN
+               ,NTM.DATA_INS_USER_ID
+               ,NTM.DATA_INS_USER_IP
+               ,NTM.DATA_INS_DTM
+               ,NTM.DATA_UPD_USER_ID
+               ,NTM.DATA_UPD_USER_IP
+               ,NTM.DATA_UPD_DTM
+         FROM TB_RPJTE_NTDK_M NTM
+        WHERE 1=1
+          AND NTM.USE_YN = 'Y'
+        <if test='ntdkNm != null and ntdkNm != ""'>
+          AND NTM.NTDK_NM LIKE '%' || #{ntdkNm} || '%'
+        </if>
+        ORDER BY NTDK_ID
+    </select>
+
+    <select id="selectNotificationGroupDivisions" resultType="com.flare.rap.notification.model.NotificationGroupDivisionResponseVO">
+        SELECT T1.CMN_CD AS NTDK_DIVS_CD
+              ,FN_GET_CD_NM('NTDK_DIVS_CD', T1.CMN_CD , #{session.langCd}) AS NTDK_DIVS_NM
+          FROM TB_RPJTE_CMN_C T1
+              ,TB_RPJTE_CMN_GR_C T2
+         WHERE T2.CMN_GR_CD = 'NTDK_DIVS_CD'
+           AND T1.CMN_GR_CD = T2.CMN_GR_CD
+           AND T1.USE_YN = 'Y'
+         ORDER BY T1.SORT_ORD ASC
+    </select>
+
+    <select id="selectNotificationGroupUsers" resultType="com.flare.rap.notification.model.NotificationGroupUserResponseVO">
+        SELECT NTD.APR_NOTF_USER_ID
+              ,FN_GET_USER_NM(USER_ID, #{session.langCd}, 'ID') AS EMP_NM
+              ,FN_GET_DEPT_NM(DEPT_CD, #{session.langCd}) AS DEPT_NM
+              ,EMP.JTI_NM
+              ,EMP.OFC_PHN
+              ,EMP.EML_SVR_DMN_IFO_NM
+--               ,EMP.EML_DMN_IFO_NM AS EML_SVR_DMN_IFO_NM
+              ,NTD.NTDK_SEQ
+              ,NTD.NTDK_DIVS_CD
+              ,NTD.NTDK_ID
+              ,NTD.SORT_ORD
+              ,NTD.USE_YN
+              ,NTD.DATA_INS_USER_ID
+              ,NTD.DATA_INS_USER_IP
+              ,NTD.DATA_INS_DTM
+              ,NTD.DATA_UPD_USER_ID
+              ,NTD.DATA_UPD_USER_IP
+              ,NTD.DATA_UPD_DTM
+        FROM TB_RPJTE_NTDK_D NTD
+            ,TB_RPJTE_EMP_M EMP
+        WHERE 1=1
+          AND NTD.APR_NOTF_USER_ID = EMP.USER_ID
+          AND NTD.USE_YN = 'Y'
+          AND NTD.NTDK_ID = #{ntdkId}
+        ORDER BY NTDK_SEQ ASC
+    </select>
+
+    <select id="selectMaxNtdkId" resultType="long">
+        SELECT MAX(NTD.NTDK_ID)
+        FROM TB_RPJTE_NTDK_M NTD
+    </select>
+
+    <insert id="insertNotificationGroup">
+        INSERT INTO TB_RPJTE_NTDK_M
+        (
+         NTDK_ID
+        ,NTDK_NM
+        ,NTDK_DESC
+        ,USE_YN
+        ,DATA_INS_USER_ID
+        ,DATA_INS_USER_IP
+        ,DATA_INS_DTM
+        ,DATA_UPD_USER_ID
+        ,DATA_UPD_USER_IP
+        ,DATA_UPD_DTM
+        )
+        VALUES
+        (
+         (SELECT NVL(MAX(NTD.NTDK_ID), 0) + 1 FROM TB_RPJTE_NTDK_M NTD)
+        ,#{notification.ntdkNm}
+        ,#{notification.ntdkDesc}
+        ,'Y'
+        ,#{session.userId}
+        ,#{session.userIp}
+        ,SYSDATE
+        ,#{session.userId}
+        ,#{session.userIp}
+        ,SYSDATE
+        )
+    </insert>
+
+    <insert id="insertNotificationGroupUser">
+        INSERT INTO TB_RPJTE_NTDK_D
+        (
+         NTDK_ID
+        ,NTDK_SEQ
+        ,NTDK_DIVS_CD
+        ,APR_NOTF_USER_ID
+        ,SORT_ORD
+        ,USE_YN
+        ,DATA_INS_USER_ID
+        ,DATA_INS_USER_IP
+        ,DATA_INS_DTM
+        ,DATA_UPD_USER_ID
+        ,DATA_UPD_USER_IP
+        ,DATA_UPD_DTM
+        )
+        VALUES
+        (
+         #{notification.ntdkId}
+        ,(SELECT NVL(MAX(NTD.NTDK_SEQ), 0) + 1 FROM TB_RPJTE_NTDK_D NTD WHERE NTD.NTDK_ID = #{notification.ntdkId})
+        ,#{notification.ntdkDivsCd}
+        ,#{notification.aprNotfUserId}
+        ,(SELECT NVL(MAX(NTD.NTDK_SEQ), 0) + 1 FROM TB_RPJTE_NTDK_D NTD WHERE NTD.NTDK_ID = #{notification.ntdkId})
+        ,'Y'
+        ,#{session.userId}
+        ,#{session.userIp}
+        ,SYSDATE
+        ,#{session.userId}
+        ,#{session.userIp}
+        ,SYSDATE
+        )
+    </insert>
+
+    <update id="updateNotificationGroupUser">
+        UPDATE TB_RPJTE_NTDK_D
+           SET APR_NOTF_USER_ID = #{notification.aprNotfUserId}
+              ,NTDK_DIVS_CD = #{notification.ntdkDivsCd}
+              ,DATA_UPD_USER_ID=#{session.userId}
+              ,DATA_UPD_USER_IP=#{session.userIp}
+              ,DATA_UPD_DTM=SYSDATE
+         WHERE NTDK_ID = #{notification.ntdkId}
+           AND NTDK_SEQ = #{notification.ntdkSeq}
+    </update>
+
+    <update id="updateNotificationGroup">
+        UPDATE TB_RPJTE_NTDK_M
+           SET NTDK_NM = #{notification.ntdkNm}
+              ,NTDK_DESC = #{notification.ntdkDesc}
+              ,DATA_UPD_USER_ID=#{session.userId}
+              ,DATA_UPD_USER_IP=#{session.userIp}
+              ,DATA_UPD_DTM=SYSDATE
+        WHERE NTDK_ID = #{notification.ntdkId}
+    </update>
+
+    <update id="updateDisableNotificationGroup">
+        UPDATE TB_RPJTE_NTDK_M
+           SET USE_YN = 'N'
+              ,DATA_UPD_USER_ID=#{session.userId}
+              ,DATA_UPD_USER_IP=#{session.userIp}
+              ,DATA_UPD_DTM=SYSDATE
+         WHERE NTDK_ID = #{ntdkId}
+    </update>
+
+    <update id="updateDisableNotificationGroupUser">
+        UPDATE TB_RPJTE_NTDK_D
+           SET USE_YN = 'N'
+              ,DATA_UPD_USER_ID=#{session.userId}
+              ,DATA_UPD_USER_IP=#{session.userIp}
+              ,DATA_UPD_DTM=SYSDATE
+         WHERE NTDK_ID = #{notification.ntdkId}
+        <if test='notification.ntdkDivsCd != null and notification.ntdkDivsCd != ""'>
+           AND NTDK_DIVS_CD = #{notification.ntdkDivsCd}
+        </if>
+        <if test='notification.aprNotfUserId != null and notification.aprNotfUserId != ""'>
+           AND APR_NOTF_USER_ID = #{notification.aprNotfUserId}
+        </if>
+    </update>
+
+    <!-- 기본 통보자 조회 : 통보처 ID로 -->
+    <select id="selectBaseApprovalNtdkByNtdkId" resultType="com.flare.rap.approval.model.BaseApprovalLineResponseVO">
+        <![CDATA[
+            SELECT 'INFR' AS APR_LN_DIVS_CD
+                  ,'' AS APR_RULE_ID
+                  ,'' AS APR_RULE_NM
+                  ,'' AS APR_LN_ADD_PMIT_YN
+                  ,'' AS APR_RFER_ADD_PSBL_YN
+                  ,'' AS APR_LN_RSTB_PMIT_YN
+                  ,'' AS APR_LN_DUPL_PMIT_YN
+                  ,'' AS APR_EXC_TGT_ID
+                  ,NM.NTDK_ID AS MST_NTDK_ID
+                  ,'' AS APR_LN_ID
+                  ,'' AS APR_TP_DIVS_CD
+                  ,'' AS PRL_YN
+                  ,0 AS APR_LN_SNB
+                  ,0 AS APR_LN_SEQ
+                  ,'' AS APR_LN_ROLE_CD
+                  ,'' AS BAS_DEPT_CD
+                  ,'' AS BAS_USER_ID
+                  ,'' AS APR_LN_CHG_PSBL_YN
+                  ,'' AS APR_LN_DEL_PSBL_YN
+                  ,EMP.USER_ID
+                  ,FN_GET_USER_INFO(EMP.USER_ID, #{session.langCd}, 1) AS USER_INFO
+                  ,EMP.EMP_NO
+                  ,EMP.EMP_NM
+                  ,EMP.EMP_ENG_NM
+                  ,EMP.EMP_CNG_NM
+                  ,EMP.DEPT_CD
+                  ,EMP.DEPT_NM
+                  ,EMP.DEPT_ENG_NM
+                  ,EMP.DEPT_CNG_NM
+                  ,EMP.COP_CD
+                  ,EMP.JTI_CD
+                  ,EMP.JTI_NM
+                  ,EMP.JTI_ENG_NM
+                  ,EMP.JTI_CNG_NM
+                  ,EMP.JPS_CD
+                  ,EMP.JPS_NM
+                  ,EMP.JPS_ENG_NM
+                  ,EMP.JPS_CNG_NM
+                  ,EMP.UPPR_EMP_NO
+                  ,EMP.ONDU_REGN_CD
+                  ,EMP.ONDU_REGN_NM
+                  ,EMP.CTRY_CD
+                  ,EMP.EML_SVR_DMN_IFO_NM
+                  ,EMP.USE_YN
+                  ,'' AS APR_DLGT_NO
+                  ,'' AS APR_DLGT_USER_ID
+                  ,'' AS APR_DLGT_USER_EMP_NM
+                  ,'' AS APR_DLGT_USER_JTI_NM
+                  ,'' AS APR_DLGT_USER_DEPT_NM
+                  ,'' AS APR_DLGT_USER_INFO
+                  ,'' AS APR_DELE_USER_ID
+                  ,'' AS APR_DELE_EMP_NAME
+                  ,'' AS APR_DELE_JTI_NM
+                  ,'' AS APR_DELE_DEPT_NM
+                  ,'' AS APR_DELE_USER_INFO
+                  ,'' AS APR_DLGT_ST_DT
+                  ,'' AS APR_DLGT_END_DT
+              FROM TB_RPJTE_NTDK_M NM
+              JOIN TB_RPJTE_NTDK_D ND
+                ON NM.NTDK_ID = ND.NTDK_ID
+              JOIN TB_RPJTE_EMP_M EMP
+                ON ND.APR_NOTF_USER_ID = EMP.USER_ID
+             WHERE NM.USE_YN = 'Y'
+               AND ND.USE_YN = 'Y'
+               AND NM.NTDK_ID = #{ntdkId}
+             ORDER BY ND.NTDK_SEQ
+        ]]>
+    </select>
+
+</mapper>

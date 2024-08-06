@@ -1,0 +1,825 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.flare.rap.approval.repository.ApprovalRuleRepository">
+  <select id="selectApprovalRuleMasters" parameterType="String" resultType="com.flare.rap.approval.model.ApprovalRuleMasterResponseVO">
+    SELECT ARM.APR_RULE_ID
+          ,ARM.APR_RULE_NM
+          ,ARM.APR_LN_ADD_PMIT_YN
+          ,ARM.APR_RFER_ADD_PSBL_YN
+          ,ARM.APR_LN_RSTB_PMIT_YN
+          ,ARM.APR_LN_DUPL_PMIT_YN
+          ,ARM.APR_EXC_TGT_ID
+          ,ARM.MST_NTDK_ID
+          ,ARM.DATA_INS_USER_ID
+          ,ARM.DATA_INS_USER_IP
+          ,ARM.DATA_INS_DTM
+          ,ARM.DATA_UPD_USER_ID
+          ,ARM.DATA_UPD_USER_IP
+          ,ARM.DATA_UPD_DTM
+      FROM TB_RPJTE_APR_RULE_M ARM
+     WHERE 1=1
+    <if test = 'aprRuleId != null and aprRuleId != ""'>
+       AND ARM.APR_RULE_ID = #{aprRuleId}
+    </if>
+    <if test = 'searchRuleNm != null and searchRuleNm != ""'>
+       AND ARM.APR_RULE_NM LIKE '%'||#{searchRuleNm}||'%'
+    </if>
+     ORDER BY ARM.APR_RULE_ID
+  </select>
+
+    <insert id="insertApprovalRuleMaster">
+        INSERT
+        INTO  TB_RPJTE_APR_RULE_M
+        (  APR_RULE_ID
+        ,  APR_RULE_NM
+        ,  APR_LN_ADD_PMIT_YN
+        ,  APR_RFER_ADD_PSBL_YN
+        ,  APR_LN_RSTB_PMIT_YN
+        ,  APR_LN_DUPL_PMIT_YN
+        ,  APR_EXC_TGT_ID
+        ,  MST_NTDK_ID
+        ,  DATA_INS_USER_ID ,DATA_INS_USER_IP ,DATA_INS_DTM
+        ,  DATA_UPD_USER_ID ,DATA_UPD_USER_IP ,DATA_UPD_DTM)
+        VALUES
+        ((SELECT 'AR-' || LPAD(NVL((MAX(SUBSTR(APR_RULE_ID, 4)) + 1),0), 3, '0')
+        FROM TB_RPJTE_APR_RULE_M)
+        ,  #{approvalRuleMaster.aprRuleNm}
+        ,  #{approvalRuleMaster.aprLnAddPmitYn}
+        ,  #{approvalRuleMaster.aprRferAddPsblYn}
+        ,  #{approvalRuleMaster.aprLnRstbPmitYn}
+        ,  #{approvalRuleMaster.aprLnDuplPmitYn}
+        ,  #{approvalRuleMaster.aprExcTgtId}
+        ,  #{approvalRuleMaster.mstNtdkId}
+        ,  #{session.userId}, #{session.userIp}, current_date
+        ,  #{session.userId}, #{session.userIp}, current_date)
+    </insert>
+
+    <update id="updateApprovalRuleMaster">
+        UPDATE  TB_RPJTE_APR_RULE_M
+        SET  APR_RULE_NM = #{approvalRuleMaster.aprRuleNm}
+        ,  APR_LN_ADD_PMIT_YN = #{approvalRuleMaster.aprLnAddPmitYn}
+        ,  APR_RFER_ADD_PSBL_YN = #{approvalRuleMaster.aprRferAddPsblYn}
+        ,  APR_LN_RSTB_PMIT_YN = #{approvalRuleMaster.aprLnRstbPmitYn}
+        ,  APR_LN_DUPL_PMIT_YN = #{approvalRuleMaster.aprLnDuplPmitYn}
+        ,  APR_EXC_TGT_ID = #{approvalRuleMaster.aprExcTgtId}
+        ,  MST_NTDK_ID = #{approvalRuleMaster.mstNtdkId}
+        ,  DATA_INS_USER_ID = #{session.userId}
+        ,  DATA_INS_USER_IP = #{session.userIp}
+        ,  DATA_INS_DTM = current_date
+        WHERE  APR_RULE_ID = #{approvalRuleMaster.aprRuleId}
+    </update>
+
+  <select id="selectApprovalRuleDetails" parameterType="String" resultType="com.flare.rap.approval.model.ApprovalRuleDetailResponseVO">
+    SELECT ARD.APR_RULE_ID
+          ,ARD.APR_LN_ID
+          ,ARD.APR_TP_DIVS_CD
+          ,ARD.PRL_YN
+          ,ARD.APR_LN_SNB
+          ,ARD.APR_LN_SEQ
+          ,ARD.APR_LN_ROLE_CD
+          ,ARD.DEPT_CD
+          ,FN_GET_DEPT_NM(ARD.DEPT_CD, #{session.langCd}) AS DEPT_NM
+          ,ARD.USER_ID
+          ,EM.EMP_NM AS USER_NM
+          ,FN_GET_USER_INFO(ARD.USER_ID, #{session.langCd}) AS USER_INFO
+          ,ARD.APR_LN_CHG_PSBL_YN
+          ,ARD.APR_LN_DEL_PSBL_YN
+          ,ARD.DATA_INS_USER_ID
+          ,ARD.DATA_INS_USER_IP
+          ,ARD.DATA_INS_DTM
+          ,ARD.DATA_UPD_USER_ID
+          ,ARD.DATA_UPD_USER_IP
+          ,ARD.DATA_UPD_DTM
+      FROM TB_RPJTE_APR_RULE_D ARD
+      LEFT OUTER JOIN TB_RPJTE_EMP_M EM ON ARD.USER_ID = EM.USER_ID
+     WHERE 1=1
+       AND ARD.APR_RULE_ID = #{aprRuleId}
+     ORDER BY APR_LN_SEQ
+  </select>
+
+  <delete id="deleteApprovalRuleDetails">
+    DELETE FROM TB_RPJTE_APR_RULE_D ARD
+     WHERE ARD.APR_RULE_ID = #{aprRuleId}
+  </delete>
+
+  <insert id="insertApprovalRuleDetails" parameterType="com.flare.rap.approval.model.ApprovalRuleDetailRequestVO">
+    <foreach  collection="approvalRuleDetails" item="item" open="BEGIN" separator=";" close="; END;">
+    INSERT INTO TB_RPJTE_APR_RULE_D
+          (APR_RULE_ID
+          ,APR_LN_ID
+          ,APR_TP_DIVS_CD
+          ,PRL_YN
+          ,APR_LN_SNB
+          ,APR_LN_SEQ
+          ,APR_LN_ROLE_CD
+          ,DEPT_CD
+          ,USER_ID
+          ,APR_LN_CHG_PSBL_YN
+          ,APR_LN_DEL_PSBL_YN
+          ,DATA_INS_USER_ID ,DATA_INS_USER_IP ,DATA_INS_DTM
+          ,DATA_UPD_USER_ID ,DATA_UPD_USER_IP ,DATA_UPD_DTM)
+    SELECT #{item.aprRuleId}
+          ,('ARL-' || LPAD(NVL((MAX(SUBSTR(APR_LN_ID, 5)) + 1),0), 3, '0'))
+          ,#{item.aprTpDivsCd}
+          ,#{item.prlYn}
+          ,#{item.aprLnSnb}
+          ,#{item.aprLnSeq}
+          ,#{item.aprLnRoleCd}
+          ,#{item.deptCd}
+          ,#{item.userId}
+          ,#{item.aprLnChgPsblYn}
+          ,#{item.aprLnDelPsblYn}
+          ,#{session.userId} ,#{session.userIp} ,SYSDATE
+          ,#{session.userId} ,#{session.userIp} ,SYSDATE
+      FROM TB_RPJTE_APR_RULE_D
+    </foreach>
+  </insert>
+
+
+
+    <!-- 기본 결재라인 조회 : APR_LN_ROLE_CD : USER 개인 -->
+    <select id="selectBaseApprovalLineUser" resultType="com.flare.rap.approval.model.BaseApprovalLineResponseVO">
+        <![CDATA[
+            SELECT 'APPD' AS APR_LN_DIVS_CD
+                  ,M.APR_RULE_ID
+                  ,M.APR_RULE_NM
+                  ,M.APR_LN_ADD_PMIT_YN
+                  ,M.APR_RFER_ADD_PSBL_YN
+                  ,M.APR_LN_RSTB_PMIT_YN
+                  ,M.APR_LN_DUPL_PMIT_YN
+                  ,M.APR_EXC_TGT_ID
+                  ,M.MST_NTDK_ID
+                  ,D.APR_LN_ID
+                  ,D.APR_TP_DIVS_CD
+                  ,D.PRL_YN
+                  ,D.APR_LN_SNB
+                  ,D.APR_LN_SEQ
+                  ,D.APR_LN_ROLE_CD
+                  ,D.DEPT_CD              AS BAS_DEPT_CD
+                  ,D.USER_ID              AS BAS_USER_ID
+                  ,D.APR_LN_CHG_PSBL_YN
+                  ,D.APR_LN_DEL_PSBL_YN
+                  ,EMP.USER_ID
+                  ,FN_GET_USER_INFO(EMP.USER_ID, #{session.langCd}, 1) AS USER_INFO
+                  ,EMP.EMP_NO
+                  ,EMP.EMP_NM
+                  ,EMP.EMP_ENG_NM
+                  ,EMP.EMP_CNG_NM
+                  ,EMP.DEPT_CD
+                  ,EMP.DEPT_NM
+                  ,EMP.DEPT_ENG_NM
+                  ,EMP.DEPT_CNG_NM
+                  ,EMP.COP_CD
+                  ,EMP.JTI_CD
+                  ,EMP.JTI_NM
+                  ,EMP.JTI_ENG_NM
+                  ,EMP.JTI_CNG_NM
+                  ,EMP.JPS_CD
+                  ,EMP.JPS_NM
+                  ,EMP.JPS_ENG_NM
+                  ,EMP.JPS_CNG_NM
+                  ,EMP.UPPR_EMP_NO
+                  ,EMP.ONDU_REGN_CD
+                  ,EMP.ONDU_REGN_NM
+                  ,EMP.CTRY_CD
+                  ,EMP.USE_YN
+                  ,DL.APR_DLGT_NO
+                  ,DL.APR_DLGT_USER_ID
+                  ,DL.APR_DLGT_USER_EMP_NM
+                  ,DL.APR_DLGT_USER_JTI_NM
+                  ,DL.APR_DLGT_USER_DEPT_NM
+                  ,DL.APR_DLGT_USER_INFO
+                  ,DL.APR_DELE_USER_ID
+                  ,DL.APR_DELE_EMP_NAME
+                  ,DL.APR_DELE_JTI_NM
+                  ,DL.APR_DELE_DEPT_NM
+                  ,DL.APR_DELE_USER_INFO
+                  ,DL.APR_DLGT_ST_DT
+                  ,DL.APR_DLGT_END_DT
+              FROM TB_RPJTE_APR_RULE_M M
+              JOIN TB_RPJTE_APR_RULE_D D
+                ON M.APR_RULE_ID = D.APR_RULE_ID
+              JOIN TB_RPJTE_EMP_M EMP
+                ON D.USER_ID = EMP.USER_ID
+              LEFT OUTER JOIN (SELECT *
+                                 FROM (SELECT AM.APR_DLGT_NO
+                                             ,AM.APR_DLGT_USER_ID
+                                             ,EM1.EMP_NM AS APR_DLGT_USER_EMP_NM
+                                             ,EM1.JTI_NM AS APR_DLGT_USER_JTI_NM
+                                             ,EM1.DEPT_NM AS APR_DLGT_USER_DEPT_NM
+                                             ,FN_GET_USER_INFO(EM1.USER_ID, #{session.langCd}, 1) AS APR_DLGT_USER_INFO
+                                             ,AM.APR_DELE_USER_ID
+                                             ,EM2.EMP_NM AS APR_DELE_EMP_NAME
+                                             ,EM2.JTI_NM AS APR_DELE_JTI_NM
+                                             ,EM2.DEPT_NM AS APR_DELE_DEPT_NM
+                                             ,FN_GET_USER_INFO(EM2.USER_ID, #{session.langCd}, 1) AS APR_DELE_USER_INFO
+                                             ,AM.APR_DLGT_ST_DT
+                                             ,AM.APR_DLGT_END_DT
+                                             ,RANK() OVER(PARTITION BY AM.APR_DLGT_USER_ID ORDER BY AM.APR_DLGT_NO DESC) AS RN
+                                         FROM TB_RPJTE_APR_DLGT_M AM
+                                         LEFT JOIN TB_RPJTE_EMP_M EM1
+                                           ON AM.APR_DLGT_USER_ID = EM1.USER_ID
+                                         LEFT JOIN TB_RPJTE_EMP_M EM2
+                                           ON AM.APR_DELE_USER_ID = EM2.USER_ID
+                                        WHERE AM.USE_YN = 'Y'
+                                          AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN
+                                              AM.APR_DLGT_ST_DT AND AM.APR_DLGT_END_DT) AM
+                                WHERE AM.RN = 1) DL
+                ON EMP.USER_ID = DL.APR_DLGT_USER_ID
+             WHERE M.APR_RULE_ID = #{approvalRule.aprRuleId}
+               AND D.APR_LN_ID = #{approvalRule.aprLnId}
+               AND D.APR_LN_ROLE_CD = 'USER'
+               AND D.USER_ID IS NOT NULL
+               AND NOT EXISTS
+             (SELECT 1
+                      FROM (SELECT APR_EXC_USER_ID
+                              FROM TB_RPJTE_APR_RULE_EXC_M EXM
+                              JOIN TB_RPJTE_APR_RULE_EXC_D EXD
+                                ON EXM.APR_EXC_TGT_ID = EXD.APR_EXC_TGT_ID
+                              JOIN TB_RPJTE_EMP_M EMP1
+                                ON EXD.APR_EXC_USER_ID = EMP1.USER_ID
+                             WHERE EXM.APR_EXC_TGT_ID = M.APR_EXC_TGT_ID
+                               AND EXD.APR_EXC_DIVS_CD = 'USER'
+                            UNION ALL
+                            SELECT EMP1.USER_ID AS APR_EXC_USER_ID
+                              FROM TB_RPJTE_APR_RULE_EXC_M EXM
+                              JOIN TB_RPJTE_APR_RULE_EXC_D EXD
+                                ON EXM.APR_EXC_TGT_ID = EXD.APR_EXC_TGT_ID
+                              JOIN TB_RPJTE_EMP_M EMP1
+                                ON EXD.APR_EXC_JTI_CD = EMP1.JTI_CD
+                             WHERE EXM.APR_EXC_TGT_ID = M.APR_EXC_TGT_ID
+                               AND EXD.APR_EXC_DIVS_CD = 'JTI'
+                            UNION ALL
+                            SELECT EMP1.USER_ID AS APR_EXC_USER_ID
+                              FROM TB_RPJTE_APR_RULE_EXC_M EXM
+                              JOIN TB_RPJTE_APR_RULE_EXC_D EXD
+                                ON EXM.APR_EXC_TGT_ID = EXD.APR_EXC_TGT_ID
+                              JOIN TB_RPJTE_EMP_M EMP1
+                                ON EXD.APR_EXC_JPS_CD = EMP1.JPS_CD
+                             WHERE EXD.APR_EXC_DIVS_CD = 'JPS') EXC
+                     WHERE EXC.APR_EXC_USER_ID = EMP.USER_ID)
+        ]]>
+    </select>
+
+  <!-- 기본 결재라인 조회 : APR_LN_ROLE_CD : DEPT 부서장 -->
+  <select id="selectBaseApprovalLineDept" resultType="com.flare.rap.approval.model.BaseApprovalLineResponseVO">
+    <![CDATA[
+      SELECT 'APPD' AS APR_LN_DIVS_CD
+          ,M.APR_RULE_ID
+          ,M.APR_RULE_NM
+          ,M.APR_LN_ADD_PMIT_YN
+          ,M.APR_RFER_ADD_PSBL_YN
+          ,M.APR_LN_RSTB_PMIT_YN
+          ,M.APR_LN_DUPL_PMIT_YN
+          ,M.APR_EXC_TGT_ID
+          ,M.MST_NTDK_ID
+          ,D.APR_LN_ID
+          ,D.APR_TP_DIVS_CD
+          ,D.PRL_YN
+          ,D.APR_LN_SNB
+          ,D.APR_LN_SEQ
+          ,D.APR_LN_ROLE_CD
+          ,D.DEPT_CD              AS BAS_DEPT_CD
+          ,D.USER_ID              AS BAS_USER_ID
+          ,D.APR_LN_CHG_PSBL_YN
+          ,D.APR_LN_DEL_PSBL_YN
+          ,EMP.USER_ID
+          ,FN_GET_USER_INFO(EMP.USER_ID, #{session.langCd}, 1) AS USER_INFO
+          ,EMP.EMP_NO
+          ,EMP.EMP_NM
+          ,EMP.EMP_ENG_NM
+          ,EMP.EMP_CNG_NM
+          ,EMP.DEPT_CD
+          ,EMP.DEPT_NM
+          ,EMP.DEPT_ENG_NM
+          ,EMP.DEPT_CNG_NM
+          ,EMP.COP_CD
+          ,EMP.JTI_CD
+          ,EMP.JTI_NM
+          ,EMP.JTI_ENG_NM
+          ,EMP.JTI_CNG_NM
+          ,EMP.JPS_CD
+          ,EMP.JPS_NM
+          ,EMP.JPS_ENG_NM
+          ,EMP.JPS_CNG_NM
+          ,EMP.UPPR_EMP_NO
+          ,EMP.ONDU_REGN_CD
+          ,EMP.ONDU_REGN_NM
+          ,EMP.CTRY_CD
+          ,EMP.USE_YN
+          ,DL.APR_DLGT_NO
+          ,DL.APR_DLGT_USER_ID
+          ,DL.APR_DLGT_USER_EMP_NM
+          ,DL.APR_DLGT_USER_JTI_NM
+          ,DL.APR_DLGT_USER_DEPT_NM
+          ,DL.APR_DLGT_USER_INFO
+          ,DL.APR_DELE_USER_ID
+          ,DL.APR_DELE_EMP_NAME
+          ,DL.APR_DELE_JTI_NM
+          ,DL.APR_DELE_DEPT_NM
+          ,DL.APR_DELE_USER_INFO
+          ,DL.APR_DLGT_ST_DT
+          ,DL.APR_DLGT_END_DT
+        FROM TB_RPJTE_APR_RULE_M M
+        JOIN TB_RPJTE_APR_RULE_D D
+        ON M.APR_RULE_ID = D.APR_RULE_ID
+        JOIN TB_RPJTE_DEPT_M DEP
+        ON D.DEPT_CD = DEP.DEPT_CD
+        JOIN TB_RPJTE_EMP_M EMP
+        ON DEP.TEM_LDR_USER_ID = EMP.EMP_NO
+        LEFT OUTER JOIN (SELECT *
+                 FROM (SELECT AM.APR_DLGT_NO
+                       ,AM.APR_DLGT_USER_ID
+                       ,EM1.EMP_NM AS APR_DLGT_USER_EMP_NM
+                       ,EM1.JTI_NM AS APR_DLGT_USER_JTI_NM
+                       ,EM1.DEPT_NM AS APR_DLGT_USER_DEPT_NM
+                       ,FN_GET_USER_INFO(EM1.USER_ID, #{session.langCd}, 1) AS APR_DLGT_USER_INFO
+                       ,AM.APR_DELE_USER_ID
+                       ,EM2.EMP_NM AS APR_DELE_EMP_NAME
+                       ,EM2.JTI_NM AS APR_DELE_JTI_NM
+                       ,EM2.DEPT_NM AS APR_DELE_DEPT_NM
+                       ,FN_GET_USER_INFO(EM2.USER_ID, #{session.langCd}, 1) AS APR_DELE_USER_INFO
+                       ,AM.APR_DLGT_ST_DT
+                       ,AM.APR_DLGT_END_DT
+                       ,RANK() OVER(PARTITION BY AM.APR_DLGT_USER_ID ORDER BY AM.APR_DLGT_NO DESC) AS RN
+                     FROM TB_RPJTE_APR_DLGT_M AM
+                     LEFT JOIN TB_RPJTE_EMP_M EM1
+                       ON AM.APR_DLGT_USER_ID = EM1.USER_ID
+                     LEFT JOIN TB_RPJTE_EMP_M EM2
+                       ON AM.APR_DELE_USER_ID = EM2.USER_ID
+                    WHERE AM.USE_YN = 'Y'
+                      AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN
+                        AM.APR_DLGT_ST_DT AND AM.APR_DLGT_END_DT) AM
+                WHERE AM.RN = 1) DL
+        ON EMP.USER_ID = DL.APR_DLGT_USER_ID
+       WHERE M.APR_RULE_ID = #{approvalRule.aprRuleId}
+         AND D.APR_LN_ID = #{approvalRule.aprLnId}
+         AND D.APR_LN_ROLE_CD = 'DEPT'
+         AND D.DEPT_CD IS NOT NULL
+         AND NOT EXISTS
+       (SELECT 1
+            FROM (SELECT APR_EXC_USER_ID
+                FROM TB_RPJTE_APR_RULE_EXC_M EXM
+                JOIN TB_RPJTE_APR_RULE_EXC_D EXD
+                ON EXM.APR_EXC_TGT_ID = EXD.APR_EXC_TGT_ID
+                JOIN TB_RPJTE_EMP_M EMP1
+                ON EXD.APR_EXC_USER_ID = EMP1.USER_ID
+               WHERE EXM.APR_EXC_TGT_ID = M.APR_EXC_TGT_ID
+                 AND EXD.APR_EXC_DIVS_CD = 'USER'
+              UNION ALL
+              SELECT EMP1.USER_ID AS APR_EXC_USER_ID
+                FROM TB_RPJTE_APR_RULE_EXC_M EXM
+                JOIN TB_RPJTE_APR_RULE_EXC_D EXD
+                ON EXM.APR_EXC_TGT_ID = EXD.APR_EXC_TGT_ID
+                JOIN TB_RPJTE_EMP_M EMP1
+                ON EXD.APR_EXC_JTI_CD = EMP1.JTI_CD
+               WHERE EXM.APR_EXC_TGT_ID = M.APR_EXC_TGT_ID
+                 AND EXD.APR_EXC_DIVS_CD = 'JTI'
+              UNION ALL
+              SELECT EMP1.USER_ID AS APR_EXC_USER_ID
+                FROM TB_RPJTE_APR_RULE_EXC_M EXM
+                JOIN TB_RPJTE_APR_RULE_EXC_D EXD
+                ON EXM.APR_EXC_TGT_ID = EXD.APR_EXC_TGT_ID
+                JOIN TB_RPJTE_EMP_M EMP1
+                ON EXD.APR_EXC_JPS_CD = EMP1.JPS_CD
+               WHERE EXD.APR_EXC_DIVS_CD = 'JPS') EXC
+           WHERE EXC.APR_EXC_USER_ID = EMP.USER_ID)
+    ]]>
+  </select>
+
+  <!-- 기본 결재라인 조회 : APR_LN_ROLE_CD : UPPR1 상위자 -->
+  <select id="selectBaseApprovalLineUppr1" resultType="com.flare.rap.approval.model.BaseApprovalLineResponseVO">
+    <![CDATA[
+      SELECT 'APPD' AS APR_LN_DIVS_CD
+          ,M.APR_RULE_ID
+          ,M.APR_RULE_NM
+          ,M.APR_LN_ADD_PMIT_YN
+          ,M.APR_RFER_ADD_PSBL_YN
+          ,M.APR_LN_RSTB_PMIT_YN
+          ,M.APR_LN_DUPL_PMIT_YN
+          ,M.APR_EXC_TGT_ID
+          ,M.MST_NTDK_ID
+          ,D.APR_LN_ID
+          ,D.APR_TP_DIVS_CD
+          ,D.PRL_YN
+          ,D.APR_LN_SNB
+          ,D.APR_LN_SEQ
+          ,D.APR_LN_ROLE_CD
+          ,D.DEPT_CD              AS BAS_DEPT_CD
+          ,D.USER_ID              AS BAS_USER_ID
+          ,D.APR_LN_CHG_PSBL_YN
+          ,D.APR_LN_DEL_PSBL_YN
+          ,EMP.USER_ID
+          ,FN_GET_USER_INFO(EMP.USER_ID, #{session.langCd}, 1) AS USER_INFO
+          ,EMP.EMP_NO
+          ,EMP.EMP_NM
+          ,EMP.EMP_ENG_NM
+          ,EMP.EMP_CNG_NM
+          ,EMP.DEPT_CD
+          ,EMP.DEPT_NM
+          ,EMP.DEPT_ENG_NM
+          ,EMP.DEPT_CNG_NM
+          ,EMP.COP_CD
+          ,EMP.JTI_CD
+          ,EMP.JTI_NM
+          ,EMP.JTI_ENG_NM
+          ,EMP.JTI_CNG_NM
+          ,EMP.JPS_CD
+          ,EMP.JPS_NM
+          ,EMP.JPS_ENG_NM
+          ,EMP.JPS_CNG_NM
+          ,EMP.UPPR_EMP_NO
+          ,EMP.ONDU_REGN_CD
+          ,EMP.ONDU_REGN_NM
+          ,EMP.CTRY_CD
+          ,EMP.USE_YN
+          ,DL.APR_DLGT_NO
+          ,DL.APR_DLGT_USER_ID
+          ,DL.APR_DLGT_USER_EMP_NM
+          ,DL.APR_DLGT_USER_JTI_NM
+          ,DL.APR_DLGT_USER_DEPT_NM
+          ,DL.APR_DLGT_USER_INFO
+          ,DL.APR_DELE_USER_ID
+          ,DL.APR_DELE_EMP_NAME
+          ,DL.APR_DELE_JTI_NM
+          ,DL.APR_DELE_DEPT_NM
+          ,DL.APR_DELE_USER_INFO
+          ,DL.APR_DLGT_ST_DT
+          ,DL.APR_DLGT_END_DT
+        FROM TB_RPJTE_APR_RULE_M M
+        JOIN TB_RPJTE_APR_RULE_D D
+        ON M.APR_RULE_ID = D.APR_RULE_ID
+       CROSS JOIN (SELECT EM.*
+               FROM TB_RPJTE_EMP_M EM
+              WHERE EM.EMP_NO =
+                (SELECT ZZ.UPPR_EMP_NO
+                   FROM TB_RPJTE_EMP_M ZZ
+                  WHERE ZZ.USER_ID = #{session.userId})) EMP
+        LEFT OUTER JOIN (SELECT *
+                 FROM (SELECT AM.APR_DLGT_NO
+                       ,AM.APR_DLGT_USER_ID
+                       ,EM1.EMP_NM AS APR_DLGT_USER_EMP_NM
+                       ,EM1.JTI_NM AS APR_DLGT_USER_JTI_NM
+                       ,EM1.DEPT_NM AS APR_DLGT_USER_DEPT_NM
+                       ,FN_GET_USER_INFO(EM1.USER_ID, #{session.langCd}, 1) AS APR_DLGT_USER_INFO
+                       ,AM.APR_DELE_USER_ID
+                       ,EM2.EMP_NM AS APR_DELE_EMP_NAME
+                       ,EM2.JTI_NM AS APR_DELE_JTI_NM
+                       ,EM2.DEPT_NM AS APR_DELE_DEPT_NM
+                       ,FN_GET_USER_INFO(EM2.USER_ID, #{session.langCd}, 1) AS APR_DELE_USER_INFO
+                       ,AM.APR_DLGT_ST_DT
+                       ,AM.APR_DLGT_END_DT
+                       ,RANK() OVER(PARTITION BY AM.APR_DLGT_USER_ID ORDER BY AM.APR_DLGT_NO DESC) AS RN
+                     FROM TB_RPJTE_APR_DLGT_M AM
+                     LEFT JOIN TB_RPJTE_EMP_M EM1
+                       ON AM.APR_DLGT_USER_ID = EM1.USER_ID
+                     LEFT JOIN TB_RPJTE_EMP_M EM2
+                       ON AM.APR_DELE_USER_ID = EM2.USER_ID
+                    WHERE AM.USE_YN = 'Y'
+                      AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN
+                        AM.APR_DLGT_ST_DT AND AM.APR_DLGT_END_DT) AM
+                WHERE AM.RN = 1) DL
+        ON EMP.USER_ID = DL.APR_DLGT_USER_ID
+       WHERE M.APR_RULE_ID = #{approvalRule.aprRuleId}
+         AND D.APR_LN_ID = #{approvalRule.aprLnId}
+         AND D.APR_LN_ROLE_CD = 'UPPR1'
+         AND NOT EXISTS
+       (SELECT 1
+            FROM (SELECT APR_EXC_USER_ID
+                FROM TB_RPJTE_APR_RULE_EXC_M EXM
+                JOIN TB_RPJTE_APR_RULE_EXC_D EXD
+                ON EXM.APR_EXC_TGT_ID = EXD.APR_EXC_TGT_ID
+                JOIN TB_RPJTE_EMP_M EMP1
+                ON EXD.APR_EXC_USER_ID = EMP1.USER_ID
+               WHERE EXM.APR_EXC_TGT_ID = M.APR_EXC_TGT_ID
+                 AND EXD.APR_EXC_DIVS_CD = 'USER'
+              UNION ALL
+              SELECT EMP1.USER_ID AS APR_EXC_USER_ID
+                FROM TB_RPJTE_APR_RULE_EXC_M EXM
+                JOIN TB_RPJTE_APR_RULE_EXC_D EXD
+                ON EXM.APR_EXC_TGT_ID = EXD.APR_EXC_TGT_ID
+                JOIN TB_RPJTE_EMP_M EMP1
+                ON EXD.APR_EXC_JTI_CD = EMP1.JTI_CD
+               WHERE EXM.APR_EXC_TGT_ID = M.APR_EXC_TGT_ID
+                 AND EXD.APR_EXC_DIVS_CD = 'JTI'
+              UNION ALL
+              SELECT EMP1.USER_ID AS APR_EXC_USER_ID
+                FROM TB_RPJTE_APR_RULE_EXC_M EXM
+                JOIN TB_RPJTE_APR_RULE_EXC_D EXD
+                ON EXM.APR_EXC_TGT_ID = EXD.APR_EXC_TGT_ID
+                JOIN TB_RPJTE_EMP_M EMP1
+                ON EXD.APR_EXC_JPS_CD = EMP1.JPS_CD
+               WHERE EXD.APR_EXC_DIVS_CD = 'JPS') EXC
+           WHERE EXC.APR_EXC_USER_ID = EMP.USER_ID)
+    ]]>
+  </select>
+
+  <!-- 기본 결재라인 조회 : APR_LN_ROLE_CD : UPPR2 차상위자 -->
+    <select id="selectBaseApprovalLineUppr2" resultType="com.flare.rap.approval.model.BaseApprovalLineResponseVO">
+        <![CDATA[
+            SELECT 'APPD' AS APR_LN_DIVS_CD
+                  ,M.APR_RULE_ID
+                  ,M.APR_RULE_NM
+                  ,M.APR_LN_ADD_PMIT_YN
+                  ,M.APR_RFER_ADD_PSBL_YN
+                  ,M.APR_LN_RSTB_PMIT_YN
+                  ,M.APR_LN_DUPL_PMIT_YN
+                  ,M.APR_EXC_TGT_ID
+                  ,M.MST_NTDK_ID
+                  ,D.APR_LN_ID
+                  ,D.APR_TP_DIVS_CD
+                  ,D.PRL_YN
+                  ,D.APR_LN_SNB
+                  ,D.APR_LN_SEQ
+                  ,D.APR_LN_ROLE_CD
+                  ,D.DEPT_CD              AS BAS_DEPT_CD
+                  ,D.USER_ID              AS BAS_USER_ID
+                  ,D.APR_LN_CHG_PSBL_YN
+                  ,D.APR_LN_DEL_PSBL_YN
+                  ,EMP.USER_ID
+                  ,FN_GET_USER_INFO(EMP.USER_ID, #{session.langCd}, 1) AS USER_INFO
+                  ,EMP.EMP_NO
+                  ,EMP.EMP_NM
+                  ,EMP.EMP_ENG_NM
+                  ,EMP.EMP_CNG_NM
+                  ,EMP.DEPT_CD
+                  ,EMP.DEPT_NM
+                  ,EMP.DEPT_ENG_NM
+                  ,EMP.DEPT_CNG_NM
+                  ,EMP.COP_CD
+                  ,EMP.JTI_CD
+                  ,EMP.JTI_NM
+                  ,EMP.JTI_ENG_NM
+                  ,EMP.JTI_CNG_NM
+                  ,EMP.JPS_CD
+                  ,EMP.JPS_NM
+                  ,EMP.JPS_ENG_NM
+                  ,EMP.JPS_CNG_NM
+                  ,EMP.UPPR_EMP_NO
+                  ,EMP.ONDU_REGN_CD
+                  ,EMP.ONDU_REGN_NM
+                  ,EMP.CTRY_CD
+                  ,EMP.USE_YN
+                  ,DL.APR_DLGT_NO
+                  ,DL.APR_DLGT_USER_ID
+                  ,DL.APR_DLGT_USER_EMP_NM
+                  ,DL.APR_DLGT_USER_JTI_NM
+                  ,DL.APR_DLGT_USER_DEPT_NM
+                  ,DL.APR_DLGT_USER_INFO
+                  ,DL.APR_DELE_USER_ID
+                  ,DL.APR_DELE_EMP_NAME
+                  ,DL.APR_DELE_JTI_NM
+                  ,DL.APR_DELE_DEPT_NM
+                  ,DL.APR_DELE_USER_INFO
+                  ,DL.APR_DLGT_ST_DT
+                  ,DL.APR_DLGT_END_DT
+              FROM TB_RPJTE_APR_RULE_M M
+              JOIN TB_RPJTE_APR_RULE_D D
+                ON M.APR_RULE_ID = D.APR_RULE_ID
+             CROSS JOIN (SELECT EM.*
+                           FROM TB_RPJTE_EMP_M EM
+                          WHERE EM.EMP_NO =
+                                (SELECT DEP.TEM_LDR_USER_ID
+                                   FROM TB_RPJTE_DEPT_M DEP
+                                  WHERE DEP.DEPT_CD =
+                                        (SELECT DEP1.UPPR_DEPT_CD
+                                           FROM TB_RPJTE_DEPT_M DEP1
+                                          WHERE DEP1.DEPT_CD =
+                                                (SELECT ZZ.DEPT_CD
+                                                   FROM TB_RPJTE_EMP_M ZZ
+                                                  WHERE ZZ.USER_ID = #{session.userId})))) EMP
+              LEFT OUTER JOIN (SELECT *
+                                 FROM (SELECT AM.APR_DLGT_NO
+                                             ,AM.APR_DLGT_USER_ID
+                                             ,EM1.EMP_NM AS APR_DLGT_USER_EMP_NM
+                                             ,EM1.JTI_NM AS APR_DLGT_USER_JTI_NM
+                                             ,EM1.DEPT_NM AS APR_DLGT_USER_DEPT_NM
+                                             ,FN_GET_USER_INFO(EM1.USER_ID, #{session.langCd}, 1) AS APR_DLGT_USER_INFO
+                                             ,AM.APR_DELE_USER_ID
+                                             ,EM2.EMP_NM AS APR_DELE_EMP_NAME
+                                             ,EM2.JTI_NM AS APR_DELE_JTI_NM
+                                             ,EM2.DEPT_NM AS APR_DELE_DEPT_NM
+                                             ,FN_GET_USER_INFO(EM2.USER_ID, #{session.langCd}, 1) AS APR_DELE_USER_INFO
+                                             ,AM.APR_DLGT_ST_DT
+                                             ,AM.APR_DLGT_END_DT
+                                             ,RANK() OVER(PARTITION BY AM.APR_DLGT_USER_ID ORDER BY AM.APR_DLGT_NO DESC) AS RN
+                                         FROM TB_RPJTE_APR_DLGT_M AM
+                                         LEFT JOIN TB_RPJTE_EMP_M EM1
+                                           ON AM.APR_DLGT_USER_ID = EM1.USER_ID
+                                         LEFT JOIN TB_RPJTE_EMP_M EM2
+                                           ON AM.APR_DELE_USER_ID = EM2.USER_ID
+                                        WHERE AM.USE_YN = 'Y'
+                                          AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN
+                                              AM.APR_DLGT_ST_DT AND AM.APR_DLGT_END_DT) AM
+                                WHERE AM.RN = 1) DL
+                ON EMP.USER_ID = DL.APR_DLGT_USER_ID
+             WHERE M.APR_RULE_ID = #{approvalRule.aprRuleId}
+               AND D.APR_LN_ID = #{approvalRule.aprLnId}
+               AND D.APR_LN_ROLE_CD = 'UPPR2'
+               AND NOT EXISTS
+             (SELECT 1
+                      FROM (SELECT APR_EXC_USER_ID
+                              FROM TB_RPJTE_APR_RULE_EXC_M EXM
+                              JOIN TB_RPJTE_APR_RULE_EXC_D EXD
+                                ON EXM.APR_EXC_TGT_ID = EXD.APR_EXC_TGT_ID
+                              JOIN TB_RPJTE_EMP_M EMP1
+                                ON EXD.APR_EXC_USER_ID = EMP1.USER_ID
+                             WHERE EXM.APR_EXC_TGT_ID = M.APR_EXC_TGT_ID
+                               AND EXD.APR_EXC_DIVS_CD = 'USER'
+                            UNION ALL
+                            SELECT EMP1.USER_ID AS APR_EXC_USER_ID
+                              FROM TB_RPJTE_APR_RULE_EXC_M EXM
+                              JOIN TB_RPJTE_APR_RULE_EXC_D EXD
+                                ON EXM.APR_EXC_TGT_ID = EXD.APR_EXC_TGT_ID
+                              JOIN TB_RPJTE_EMP_M EMP1
+                                ON EXD.APR_EXC_JTI_CD = EMP1.JTI_CD
+                             WHERE EXM.APR_EXC_TGT_ID = M.APR_EXC_TGT_ID
+                               AND EXD.APR_EXC_DIVS_CD = 'JTI'
+                            UNION ALL
+                            SELECT EMP1.USER_ID AS APR_EXC_USER_ID
+                              FROM TB_RPJTE_APR_RULE_EXC_M EXM
+                              JOIN TB_RPJTE_APR_RULE_EXC_D EXD
+                                ON EXM.APR_EXC_TGT_ID = EXD.APR_EXC_TGT_ID
+                              JOIN TB_RPJTE_EMP_M EMP1
+                                ON EXD.APR_EXC_JPS_CD = EMP1.JPS_CD
+                             WHERE EXD.APR_EXC_DIVS_CD = 'JPS') EXC
+                     WHERE EXC.APR_EXC_USER_ID = EMP.USER_ID)
+        ]]>
+    </select>
+
+    <!-- 기본 결재라인 조회 : APR_LN_ROLE_CD : NULL AND APR_TP_DIVS_CD = '9' 자가승인-->
+    <select id="selectBaseApprovalLineSelf" resultType="com.flare.rap.approval.model.BaseApprovalLineResponseVO">
+        <![CDATA[
+            SELECT 'APPD' AS APR_LN_DIVS_CD
+                  ,M.APR_RULE_ID
+                  ,M.APR_RULE_NM
+                  ,M.APR_LN_ADD_PMIT_YN
+                  ,M.APR_RFER_ADD_PSBL_YN
+                  ,M.APR_LN_RSTB_PMIT_YN
+                  ,M.APR_LN_DUPL_PMIT_YN
+                  ,M.APR_EXC_TGT_ID
+                  ,M.MST_NTDK_ID
+                  ,D.APR_LN_ID
+                  ,D.APR_TP_DIVS_CD
+                  ,D.PRL_YN
+                  ,D.APR_LN_SNB
+                  ,D.APR_LN_SEQ
+                  ,D.APR_LN_ROLE_CD
+                  ,D.DEPT_CD              AS BAS_DEPT_CD
+                  ,D.USER_ID              AS BAS_USER_ID
+                  ,D.APR_LN_CHG_PSBL_YN
+                  ,D.APR_LN_DEL_PSBL_YN
+                  ,EMP.USER_ID
+                  ,FN_GET_USER_INFO(EMP.USER_ID, #{session.langCd}, 1) AS USER_INFO
+                  ,EMP.EMP_NO
+                  ,EMP.EMP_NM
+                  ,EMP.EMP_ENG_NM
+                  ,EMP.EMP_CNG_NM
+                  ,EMP.DEPT_CD
+                  ,EMP.DEPT_NM
+                  ,EMP.DEPT_ENG_NM
+                  ,EMP.DEPT_CNG_NM
+                  ,EMP.COP_CD
+                  ,EMP.JTI_CD
+                  ,EMP.JTI_NM
+                  ,EMP.JTI_ENG_NM
+                  ,EMP.JTI_CNG_NM
+                  ,EMP.JPS_CD
+                  ,EMP.JPS_NM
+                  ,EMP.JPS_ENG_NM
+                  ,EMP.JPS_CNG_NM
+                  ,EMP.UPPR_EMP_NO
+                  ,EMP.ONDU_REGN_CD
+                  ,EMP.ONDU_REGN_NM
+                  ,EMP.CTRY_CD
+                  ,EMP.USE_YN
+                  ,DL.APR_DLGT_NO
+                  ,DL.APR_DLGT_USER_ID
+                  ,DL.APR_DLGT_USER_EMP_NM
+                  ,DL.APR_DLGT_USER_JTI_NM
+                  ,DL.APR_DLGT_USER_DEPT_NM
+                  ,DL.APR_DLGT_USER_INFO
+                  ,DL.APR_DELE_USER_ID
+                  ,DL.APR_DELE_EMP_NAME
+                  ,DL.APR_DELE_JTI_NM
+                  ,DL.APR_DELE_DEPT_NM
+                  ,DL.APR_DELE_USER_INFO
+                  ,DL.APR_DLGT_ST_DT
+                  ,DL.APR_DLGT_END_DT
+              FROM TB_RPJTE_APR_RULE_M M
+              JOIN TB_RPJTE_APR_RULE_D D
+                ON M.APR_RULE_ID = D.APR_RULE_ID
+             CROSS JOIN (SELECT EM.*
+                           FROM TB_RPJTE_EMP_M EM
+                          WHERE EM.USER_ID = #{session.userId}) EMP
+              LEFT OUTER JOIN (SELECT *
+                                 FROM (SELECT AM.APR_DLGT_NO
+                                             ,AM.APR_DLGT_USER_ID
+                                             ,EM1.EMP_NM AS APR_DLGT_USER_EMP_NM
+                                             ,EM1.JTI_NM AS APR_DLGT_USER_JTI_NM
+                                             ,EM1.DEPT_NM AS APR_DLGT_USER_DEPT_NM
+                                             ,FN_GET_USER_INFO(EM1.USER_ID, #{session.langCd}, 1) AS APR_DLGT_USER_INFO
+                                             ,AM.APR_DELE_USER_ID
+                                             ,EM2.EMP_NM AS APR_DELE_EMP_NAME
+                                             ,EM2.JTI_NM AS APR_DELE_JTI_NM
+                                             ,EM2.DEPT_NM AS APR_DELE_DEPT_NM
+                                             ,FN_GET_USER_INFO(EM2.USER_ID, #{session.langCd}, 1) AS APR_DELE_USER_INFO
+                                             ,AM.APR_DLGT_ST_DT
+                                             ,AM.APR_DLGT_END_DT
+                                             ,RANK() OVER(PARTITION BY AM.APR_DLGT_USER_ID ORDER BY AM.APR_DLGT_NO DESC) AS RN
+                                         FROM TB_RPJTE_APR_DLGT_M AM
+                                         LEFT JOIN TB_RPJTE_EMP_M EM1
+                                           ON AM.APR_DLGT_USER_ID = EM1.USER_ID
+                                         LEFT JOIN TB_RPJTE_EMP_M EM2
+                                           ON AM.APR_DELE_USER_ID = EM2.USER_ID
+                                        WHERE AM.USE_YN = 'Y'
+                                          AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN
+                                              AM.APR_DLGT_ST_DT AND AM.APR_DLGT_END_DT) AM
+                                WHERE AM.RN = 1) DL
+                ON EMP.USER_ID = DL.APR_DLGT_USER_ID
+             WHERE M.APR_RULE_ID = #{approvalRule.aprRuleId}
+               AND D.APR_LN_ID = #{approvalRule.aprLnId}
+               AND D.APR_TP_DIVS_CD = '9'
+               AND D.APR_LN_ROLE_CD IS NULL
+               AND D.USER_ID IS NULL
+        ]]>
+    </select>
+
+    <!-- 기본 통보자 조회 : 결재라인관리에 등록되어 있는 통보처 ID로-->
+    <select id="selectBaseApprovalNtdkByAprRuleId" resultType="com.flare.rap.approval.model.BaseApprovalLineResponseVO">
+        <![CDATA[
+            SELECT 'INFR' AS APR_LN_DIVS_CD
+                  ,M.APR_RULE_ID
+                  ,M.APR_RULE_NM
+                  ,M.APR_LN_ADD_PMIT_YN
+                  ,M.APR_RFER_ADD_PSBL_YN
+                  ,M.APR_LN_RSTB_PMIT_YN
+                  ,M.APR_LN_DUPL_PMIT_YN
+                  ,M.APR_EXC_TGT_ID
+                  ,M.MST_NTDK_ID
+                  ,'' AS APR_LN_ID
+                  ,'' AS APR_TP_DIVS_CD
+                  ,'' AS PRL_YN
+                  ,'' AS APR_LN_SNB
+                  ,'' AS APR_LN_SEQ
+                  ,'' AS APR_LN_ROLE_CD
+                  ,'' AS BAS_DEPT_CD
+                  ,'' AS BAS_USER_ID
+                  ,'' AS APR_LN_CHG_PSBL_YN
+                  ,'' AS APR_LN_DEL_PSBL_YN
+                  ,EMP.USER_ID
+                  ,FN_GET_USER_INFO(EMP.USER_ID, #{session.langCd}, 1) AS USER_INFO
+                  ,EMP.EMP_NO
+                  ,EMP.EMP_NM
+                  ,EMP.EMP_ENG_NM
+                  ,EMP.EMP_CNG_NM
+                  ,EMP.DEPT_CD
+                  ,EMP.DEPT_NM
+                  ,EMP.DEPT_ENG_NM
+                  ,EMP.DEPT_CNG_NM
+                  ,EMP.COP_CD
+                  ,EMP.JTI_CD
+                  ,EMP.JTI_NM
+                  ,EMP.JTI_ENG_NM
+                  ,EMP.JTI_CNG_NM
+                  ,EMP.JPS_CD
+                  ,EMP.JPS_NM
+                  ,EMP.JPS_ENG_NM
+                  ,EMP.JPS_CNG_NM
+                  ,EMP.UPPR_EMP_NO
+                  ,EMP.ONDU_REGN_CD
+                  ,EMP.ONDU_REGN_NM
+                  ,EMP.CTRY_CD
+                  ,EMP.USE_YN
+                  ,'' AS APR_DLGT_NO
+                  ,'' AS APR_DLGT_USER_ID
+                  ,'' AS APR_DLGT_USER_EMP_NM
+                  ,'' AS APR_DLGT_USER_JTI_NM
+                  ,'' AS APR_DLGT_USER_DEPT_NM
+                  ,'' AS APR_DLGT_USER_INFO
+                  ,'' AS APR_DELE_USER_ID
+                  ,'' AS APR_DELE_EMP_NAME
+                  ,'' AS APR_DELE_JTI_NM
+                  ,'' AS APR_DELE_DEPT_NM
+                  ,'' AS APR_DELE_USER_INFO
+                  ,'' AS APR_DLGT_ST_DT
+                  ,'' AS APR_DLGT_END_DT
+              FROM TB_RPJTE_APR_RULE_M M
+              JOIN TB_RPJTE_NTDK_M NM
+                ON M.MST_NTDK_ID = NM.NTDK_ID
+              JOIN TB_RPJTE_NTDK_D ND
+                ON NM.NTDK_ID = ND.NTDK_ID
+              JOIN TB_RPJTE_EMP_M EMP
+                ON ND.APR_NOTF_USER_ID = EMP.USER_ID
+             WHERE M.APR_RULE_ID = #{aprRuleId}
+               AND M.MST_NTDK_ID IS NOT NULL
+               AND NM.USE_YN = 'Y'
+               AND ND.USE_YN = 'Y'
+             ORDER BY ND.NTDK_SEQ
+        ]]>
+    </select>
+
+</mapper>

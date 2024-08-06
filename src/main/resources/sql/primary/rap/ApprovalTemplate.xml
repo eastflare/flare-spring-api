@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.flare.rap.approval.repository.ApprovalTemplateRepository">
+    <select id="selectApprovalTemplateByAprTplNm" resultType="com.flare.rap.approval.model.ApprovalTemplateVO">
+        SELECT AT.APR_TPL_ID
+              ,AT.INTG_APR_TP_CD
+              ,AT.APR_TPL_NM
+              ,AT.SORT_ORD
+              ,AT.APR_TPL_DESC
+              ,AT.USE_YN
+              ,AT.PRS_DESC
+              ,AT.WCST_USE_YN
+              ,AT.WCST_DESC
+              ,AT.NOTF_USE_YN
+              ,AT.NTDK_ID
+              ,AT.MGR_USE_YN
+          FROM TB_RPJTE_APR_TPL_M AT
+         WHERE 1=1
+         <if test='aprTplNm != null and aprTplNm != ""'>
+           AND AT.APR_TPL_NM LIKE '%' || #{aprTplNm} || '%'
+         </if>
+      ORDER BY AT.SORT_ORD asc
+    </select>
+
+    <insert id="insertApprovalTemplate">
+        INSERT INTO TB_RPJTE_APR_TPL_M
+        (
+            APR_TPL_ID
+           ,INTG_APR_TP_CD
+           ,APR_TPL_NM
+           ,SORT_ORD
+           ,APR_TPL_DESC
+           ,USE_YN
+           ,PRS_DESC
+           ,WCST_USE_YN
+           ,WCST_DESC
+           ,NOTF_USE_YN
+           ,NTDK_ID
+           ,MGR_USE_YN
+           ,DATA_INS_USER_ID
+           ,DATA_INS_USER_IP
+           ,DATA_INS_DTM
+           ,DATA_UPD_USER_ID
+           ,DATA_UPD_USER_IP
+           ,DATA_UPD_DTM
+        )
+        VALUES
+        (
+            #{approvalTemplate.aprTplId}
+           ,#{approvalTemplate.intgAprTpCd}
+           ,#{approvalTemplate.aprTplNm}
+           ,#{approvalTemplate.sortOrd}
+           ,#{approvalTemplate.aprTplDesc}
+           ,#{approvalTemplate.useYn}
+           ,#{approvalTemplate.prsDesc}
+           ,#{approvalTemplate.wcstUseYn}
+           ,#{approvalTemplate.wcstDesc, jdbcType=CLOB}
+           ,#{approvalTemplate.notfUseYn}
+           ,#{approvalTemplate.ntdkId}
+           ,#{approvalTemplate.mgrUseYn}
+           ,#{session.userId}
+           ,#{session.userIp}
+           ,SYSDATE
+           ,#{session.userId}
+           ,#{session.userIp}
+           ,SYSDATE
+        )
+    </insert>
+
+    <update id="updateApprovalTemplate">
+        UPDATE TB_RPJTE_APR_TPL_M
+           SET INTG_APR_TP_CD = #{approvalTemplate.intgAprTpCd}
+              ,APR_TPL_NM = #{approvalTemplate.aprTplNm}
+              ,SORT_ORD = #{approvalTemplate.sortOrd}
+              ,APR_TPL_DESC = #{approvalTemplate.aprTplDesc}
+              ,USE_YN = #{approvalTemplate.useYn}
+              ,PRS_DESC = #{approvalTemplate.prsDesc}
+              ,WCST_USE_YN = #{approvalTemplate.wcstUseYn}
+              ,WCST_DESC = #{approvalTemplate.wcstDesc, jdbcType=CLOB}
+              ,DATA_UPD_USER_ID = #{session.userId}
+              ,DATA_UPD_USER_IP = #{session.userIp}
+              ,DATA_UPD_DTM = SYSDATE
+         WHERE APR_TPL_ID = #{approvalTemplate.aprTplId}
+    </update>
+
+    <delete id="deleteApprovalTemplate">
+        DELETE
+          FROM TB_RPJTE_APR_TPL_M
+         WHERE APR_TPL_ID = #{aprTplId}
+    </delete>
+
+</mapper>

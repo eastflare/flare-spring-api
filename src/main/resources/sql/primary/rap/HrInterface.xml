@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.flare.rap.hrInterface.repository.HrInterfaceRepository">
+
+    <update id="updateDeptITranfered">
+        UPDATE TB_RPJTE_HR_DEPT_I HDI
+        SET    HDI.TRANSFER_FLAG = 'Y'
+          ,HDI.TRANSFER_DATE = SYSDATE
+        WHERE  NVL(HDI.TRANSFER_FLAG, 'N') = 'N'
+    </update>
+
+    <update id="updateEmpITranfered">
+        UPDATE TB_RPJTE_HR_EMP_I HEI
+        SET    HEI.TRANSFER_FLAG = 'Y'
+          ,HEI.TRANSFER_DATE = SYSDATE
+        WHERE  NVL(HEI.TRANSFER_FLAG, 'N') = 'N'
+    </update>
+
+    <update id= "updateDeptMaster">
+        <foreach collection="hrDepartmentlist" item="item" open="BEGIN" separator=";" close="; END;">
+            UPDATE TB_RPJTE_DEPT_M M
+            SET M.COP_CD = #{item.division}
+              ,M.DEPT_NM = #{item.codeNameKo}
+              ,M.DEPT_ENG_NM = #{item.codeNameEn}
+              ,M.DEPT_CNG_NM = #{item.codeNameCn}
+              ,M.TEM_LDR_USER_ID = #{item.chiefNumb}
+              ,M.UPPR_DEPT_CD = #{item.codeUper}
+              ,M.USE_YN = #{item.validFlag}
+              ,M.DATA_INS_USER_ID = 'ADMIN'
+              ,M.DATA_INS_USER_IP = '0.0.0.0'
+              ,M.DATA_INS_DTM = SYSDATE
+              ,M.DATA_UPD_USER_ID = 'ADMIN'
+              ,M.DATA_UPD_USER_IP = '0.0.0.0'
+              ,M.DATA_UPD_DTM = SYSDATE
+            WHERE M.DEPT_CD = #{item.codeNumb}
+        </foreach>
+    </update>
+
+    <insert id="insertDeptMaster" parameterType="List">
+        <foreach collection="hrDepartmentlist" item="item" open="INSERT ALL" close="SELECT * FROM DUAL">
+            INTO TB_RPJTE_DEPT_M (
+            DEPT_CD
+            ,COP_CD
+            ,DEPT_NM
+            ,DEPT_ENG_NM
+            ,DEPT_CNG_NM
+            ,TEM_LDR_USER_ID
+            ,UPPR_DEPT_CD
+            ,USE_YN
+            ,DATA_INS_USER_ID
+            ,DATA_INS_USER_IP
+            ,DATA_INS_DTM
+            ,DATA_UPD_USER_ID
+            ,DATA_UPD_USER_IP
+            ,DATA_UPD_DTM
+            )
+            VALUES (
+            #{item.codeNumb}
+            ,#{item.division}
+            ,#{item.codeNameKo}
+            ,#{item.codeNameEn}
+            ,#{item.codeNameCn}
+            ,#{item.chiefNumb}
+            ,#{item.codeUper}
+            ,#{item.validFlag}
+            ,'ADMIN'
+            ,'0.0.0.0'
+            ,SYSDATE
+            ,'ADMIN'
+            ,'0.0.0.0'
+            ,SYSDATE
+            )
+        </foreach>
+    </insert>
+
+    <update id= "updateEmpMaster">
+        <foreach collection="hrEmployeeList" item="item" open="BEGIN" separator=";" close="; END;">
+            UPDATE TB_RPJTE_EMP_M M
+            SET M.EMP_NO = #{item.saSabunNew}
+            ,M.EMP_NM = #{item.saName}
+            ,M.EMP_ENG_NM = #{item.saNameE}
+            ,M.EMP_CNG_NM = #{item.saHname}
+            ,M.DEPT_CD = #{item.saDeptNew}
+            ,M.DEPT_NM = #{item.saDeptName}
+            ,M.DEPT_ENG_NM = #{item.saDeptNameE}
+            ,M.DEPT_CNG_NM = #{item.saDeptNameC}
+            ,M.COP_CD = #{item.saComp}
+            ,M.JTI_CD = #{item.saJobx}
+            ,M.JTI_NM = #{item.saJobxName}
+            ,M.JTI_ENG_NM = #{item.saJobxNameE}
+            ,M.JTI_CNG_NM = #{item.saJobxNameC}
+            ,M.JPS_CD = #{item.saFunc}
+            ,M.JPS_NM = #{item.saFuncName}
+            ,M.JPS_ENG_NM = #{item.saFuncNameE}
+            ,M.JPS_CNG_NM = #{item.saFuncNameC}
+            ,M.JCOM_DT = #{item.saRect}
+            ,M.RSGN_DT = #{item.saTempDate}
+            ,M.UPPR_EMP_NO = #{item.saSabunLeader}
+            ,M.ONDU_REGN_CD = #{item.saGnmu}
+            ,M.ONDU_REGN_NM = #{item.saGnmuName}
+            ,M.SSO_DTPL_NM = #{item.ssoLocate}
+            ,M.HME_TANO = #{item.saPhonArea}
+            ,M.HME_PHN = #{item.saPhonH}
+            ,M.OFC_TANO = #{item.saPhonHarea}
+            ,M.OFC_PHN = #{item.saPhonO}
+            ,M.OFC_ETN_PHN = #{item.saPhonD}
+            ,M.DOC_AUTH_CD = #{item.saSystem}
+            ,M.EML_SVR_DMN_IFO_NM = #{item.ssoMailServer}
+            ,M.INO_DIVS_CD = #{item.saPayxgb}
+            ,M.EMP_HPHN = #{item.saHand}
+            ,M.OLD_DEPT_CD = #{item.saDept}
+            ,M.OLD_EMP_NO = #{item.saSabun}
+            ,M.DEPT_ENG_DESC = #{item.saEdeptName}
+            ,M.EMP_LOWR_GR_CD = #{item.saSnbngb}
+            ,M.EMP_UPPR_GR_CD = #{item.saSnbngr}
+            ,M.EML_DMN_IFO_NM = #{item.saMail}
+            ,M.SSO_DTPL_CD = #{item.ssoSuGnmu}
+            ,M.SSO_EMP_CNG_NM = #{item.ssoCname}
+            ,M.CTRY_CD = #{item.saNationality}
+            ,M.SSO_CHG_TP_CD = #{item.ssoExFlag}
+            ,M.SSO_CHG_DT = #{item.ssoPsDate}
+            ,M.USE_YN = #{item.useYn}
+            ,M.INO_STAT_CD = #{item.saTemp}
+            ,M.DATA_INS_USER_ID = 'ADMIN'
+            ,M.DATA_INS_USER_IP = '0.0.0.0'
+            ,M.DATA_INS_DTM = SYSDATE
+            ,M.DATA_UPD_USER_ID = 'ADMIN'
+            ,M.DATA_UPD_USER_IP = '0.0.0.0'
+            ,M.DATA_UPD_DTM = SYSDATE
+            WHERE M.USER_ID = #{item.saUser}
+        </foreach>
+    </update>
+
+    <insert id="insertEmpMaster" parameterType="List">
+        <foreach collection="hrEmployeeList" item="item" open="INSERT ALL" close="SELECT * FROM DUAL">
+            INTO TB_RPJTE_EMP_M
+            (USER_ID
+            ,EMP_NO
+            ,EMP_NM
+            ,EMP_ENG_NM
+            ,EMP_CNG_NM
+            ,DEPT_CD
+            ,DEPT_NM
+            ,DEPT_ENG_NM
+            ,DEPT_CNG_NM
+            ,COP_CD
+            ,JTI_CD
+            ,JTI_NM
+            ,JTI_ENG_NM
+            ,JTI_CNG_NM
+            ,JPS_CD
+            ,JPS_NM
+            ,JPS_ENG_NM
+            ,JPS_CNG_NM
+            ,JCOM_DT
+            ,RSGN_DT
+            ,UPPR_EMP_NO
+            ,ONDU_REGN_CD
+            ,ONDU_REGN_NM
+            ,SSO_DTPL_NM
+            ,HME_TANO
+            ,HME_PHN
+            ,OFC_TANO
+            ,OFC_PHN
+            ,OFC_ETN_PHN
+            ,DOC_AUTH_CD
+            ,EML_SVR_DMN_IFO_NM
+            ,INO_DIVS_CD
+            ,EMP_HPHN
+            ,OLD_DEPT_CD
+            ,OLD_EMP_NO
+            ,DEPT_ENG_DESC
+            ,EMP_LOWR_GR_CD
+            ,EMP_UPPR_GR_CD
+            ,EML_DMN_IFO_NM
+            ,SSO_DTPL_CD
+            ,SSO_EMP_CNG_NM
+            ,CTRY_CD
+            ,SSO_CHG_TP_CD
+            ,SSO_CHG_DT
+            ,INO_STAT_CD
+            ,USE_YN
+            ,DATA_INS_USER_ID
+            ,DATA_INS_USER_IP
+            ,DATA_INS_DTM
+            ,DATA_UPD_USER_ID
+            ,DATA_UPD_USER_IP
+            ,DATA_UPD_DTM
+            )
+            VALUES (
+            #{item.saUser}
+            , #{item.saSabunNew}
+            , #{item.saName}
+            , #{item.saNameE}
+            , #{item.saHname}
+            , #{item.saDeptNew}
+            , #{item.saDeptName}
+            , #{item.saDeptNameE}
+            , #{item.saDeptNameC}
+            , #{item.saComp}
+            , #{item.saJobx}
+            , #{item.saJobxName}
+            , #{item.saJobxNameE}
+            , #{item.saJobxNameC}
+            , #{item.saFunc}
+            , #{item.saFuncName}
+            , #{item.saFuncNameE}
+            , #{item.saFuncNameC}
+            , #{item.saRect}
+            , #{item.saTempDate}
+            , #{item.saSabunLeader}
+            , #{item.saGnmu}
+            , #{item.saGnmuName}
+            , #{item.ssoLocate}
+            , #{item.saPhonArea}
+            , #{item.saPhonH}
+            , #{item.saPhonHarea}
+            , #{item.saPhonO}
+            , #{item.saPhonD}
+            , #{item.saSystem}
+            , #{item.ssoMailServer}
+            , #{item.saPayxgb}
+            , #{item.saHand}
+            , #{item.saDept}
+            , #{item.saSabun}
+            , #{item.saEdeptName}
+            , #{item.saSnbngb}
+            , #{item.saSnbngr}
+            , #{item.saMail}
+            , #{item.ssoSuGnmu}
+            , #{item.ssoCname}
+            , #{item.saNationality}
+            , #{item.ssoExFlag}
+            , #{item.ssoPsDate}
+            , #{item.saTemp}
+            , #{item.useYn}
+            ,'ADMIN'
+            ,'0.0.0.0'
+            ,SYSDATE
+            ,'ADMIN'
+            ,'0.0.0.0'
+            ,SYSDATE
+            )
+        </foreach>
+    </insert>
+
+    <select id ="selectDepartmentMCount" resultType="int">
+        SELECT COUNT(*)
+        FROM TB_RPJTE_DEPT_M
+        WHERE DEPT_CD = #{deptCd}
+    </select>
+
+    <select id ="selectEmployeeMCount" resultType="int">
+        SELECT COUNT(*)
+        FROM TB_RPJTE_EMP_M
+        WHERE USER_ID = #{userId}
+    </select>
+
+    <select id ="selectDepartmentI" resultType="com.flare.rap.hrInterface.model.HrDepartmentVO">
+        SELECT CODE_NAME_CN
+             ,CODE_NAME_EN
+             ,CODE_NAME_KO
+             ,CODE_NUMB
+             ,CODE_UPER
+             ,CREATEDATE
+             ,DIVISION
+             ,UPDATEDATE
+             ,VALID_FLAG
+             ,CHIEF_NUMB
+             ,IF_CREATION_DATE
+             ,TRANSFER_FLAG
+             ,TRANSFER_DATE
+             ,IF_ID
+        FROM   TB_RPJTE_HR_DEPT_I
+        WHERE  NVL(TRANSFER_FLAG, 'N') = 'N'
+        ORDER  BY IF_ID ASC
+    </select>
+
+    <select id ="selectEmployeeI" resultType="com.flare.rap.hrInterface.model.HrEmployeeVO">
+        SELECT SA_COMP
+             , SA_DEPT
+             , SA_DEPT_NAME
+             , SA_DEPT_NAME_C
+             , SA_DEPT_NAME_E
+             , SA_DEPT_NEW
+             , SA_EDEPT_NAME
+             , SA_FUNC
+             , SA_FUNC_NAME
+             , SA_FUNC_NAME_C
+             , SA_FUNC_NAME_E
+             , SA_HAND
+             , SA_HNAME
+             , SA_JOBX
+             , SA_JOBX_NAME
+             , SA_JOBX_NAME_C
+             , SA_JOBX_NAME_E
+             , SA_NAME
+             , SA_NAME_E
+             , SA_PHON_AREA
+             , SA_PHON_D
+             , SA_PHON_H
+             , SA_PHON_HAREA
+             , SA_PHON_O
+             , SA_RECT
+             , SA_SABUN
+             , SA_SABUN_LEADER
+             , SA_SABUN_NEW
+             , SA_SYSTEM
+             , SA_TEMP
+             , SA_TEMP_DATE
+             , SA_USER
+             , SSO_EX_FLAG
+             , SSO_MAILSERVER
+             , SSO_PS_DATE
+             , SA_GNMU
+             , SA_GNMU_NAME
+             , SSO_LOCATE
+             , SA_PAYXGB
+             , SA_SNBNGB
+             , SA_SNBNGR
+             , SA_MAIL
+             , SSO_SU_GNMU
+             , SSO_CNAME
+             , SA_NATIONALITY
+             , IF_CREATION_DATE
+             , TRANSFER_FLAG
+             , TRANSFER_DATE
+             , IF_ID
+             , DECODE(
+                    NVL(SA_TEMP_DATE, 'Y'),
+                    'Y',
+                    DECODE(SSO_EX_FLAG, 'D', 'N', 'Y'),
+                    'N'
+                ) AS USE_YN
+        FROM   TB_RPJTE_HR_EMP_I
+        WHERE  NVL(TRANSFER_FLAG, 'N') = 'N'
+        ORDER  BY IF_ID ASC
+    </select>
+
+    <select id="selectDetpIfId" resultType="String" >
+        SELECT NVL(MAX(IF_ID),0) + 1 as ifId FROM TB_RPJTE_HR_DEPT_I
+    </select>
+
+    <select id="selectEmpIfId" resultType="String" >
+        SELECT NVL(MAX(IF_ID),0) + 1 as ifId FROM TB_RPJTE_HR_EMP_I
+    </select>
+
+    <insert id="insertHrDepartmentI" parameterType="List">
+        <foreach collection="hrDepartments" item="item" open="INSERT ALL" close="SELECT * FROM DUAL">
+        INTO TB_RPJTE_HR_DEPT_I
+        (CODE_NAME_CN
+        ,CODE_NAME_EN
+        ,CODE_NAME_KO
+        ,CODE_NUMB
+        ,CODE_UPER
+        ,CREATEDATE
+        ,DIVISION
+        ,UPDATEDATE
+        ,VALID_FLAG
+        ,CHIEF_NUMB
+        ,IF_CREATION_DATE
+        ,TRANSFER_FLAG
+        ,TRANSFER_DATE
+        ,IF_ID)
+        VALUES
+        ( #{item.codeNameCn}
+        , #{item.codeNameEn}
+        , #{item.codeNameKo}
+        , #{item.codeNumb}
+        , #{item.codeUper}
+        , #{item.createdate}
+        , #{item.division}
+        , #{item.updatedate}
+        , #{item.validFlag}
+        , #{item.chiefNumb}
+        , SYSDATE
+        , NULL
+        , NULL
+        , #{item.ifId}
+        )
+        </foreach>
+    </insert>
+
+    <insert id="insertHrEmployeeI" parameterType="List">
+        <foreach collection="hrEmployee" item="item" open="INSERT ALL" close="SELECT * FROM DUAL">
+        INTO TB_RPJTE_HR_EMP_I
+        ( SA_COMP
+        , SA_DEPT
+        , SA_DEPT_NAME
+        , SA_DEPT_NAME_C
+        , SA_DEPT_NAME_E
+        , SA_DEPT_NEW
+        , SA_EDEPT_NAME
+        , SA_FUNC
+        , SA_FUNC_NAME
+        , SA_FUNC_NAME_C
+        , SA_FUNC_NAME_E
+        , SA_HAND
+        , SA_HNAME
+        , SA_JOBX
+        , SA_JOBX_NAME
+        , SA_JOBX_NAME_C
+        , SA_JOBX_NAME_E
+        , SA_NAME
+        , SA_NAME_E
+        , SA_PHON_AREA
+        , SA_PHON_D
+        , SA_PHON_H
+        , SA_PHON_HAREA
+        , SA_PHON_O
+        , SA_RECT
+        , SA_SABUN
+        , SA_SABUN_LEADER
+        , SA_SABUN_NEW
+        , SA_SYSTEM
+        , SA_TEMP
+        , SA_TEMP_DATE
+        , SA_USER
+        , SSO_EX_FLAG
+        , SSO_MAILSERVER
+        , SSO_PS_DATE
+        , SA_GNMU
+        , SA_GNMU_NAME
+        , SSO_LOCATE
+        , SA_PAYXGB
+        , SA_SNBNGB
+        , SA_SNBNGR
+        , SA_MAIL
+        , SSO_SU_GNMU
+        , SSO_CNAME
+        , SA_NATIONALITY
+        , IF_CREATION_DATE
+        , TRANSFER_FLAG
+        , TRANSFER_DATE
+        , IF_ID
+        )
+        VALUES
+            ( #{item.saComp}
+            , #{item.saDept}
+            , #{item.saDeptName}
+            , #{item.saDeptNameC}
+            , #{item.saDeptNameE}
+            , #{item.saDeptNew}
+            , #{item.saEdeptName}
+            , #{item.saFunc}
+            , #{item.saFuncName}
+            , #{item.saFuncNameC}
+            , #{item.saFuncNameE}
+            , DECODE(#{item.saHand}, NULL, NULL, NULL )
+            , #{item.saHname}
+            , #{item.saJobx}
+            , #{item.saJobxName}
+            , #{item.saJobxNameC}
+            , #{item.saJobxNameE}
+            , #{item.saName}
+            , #{item.saNameE}
+            , #{item.saPhonArea}
+            , #{item.saPhonD}
+            , #{item.saPhonH}
+            , #{item.saPhonHarea}
+            , #{item.saPhonO}
+            , #{item.saRect}
+            , #{item.saSabun}
+            , #{item.saSabunLeader}
+            , #{item.saSabunNew}
+            , #{item.saSystem}
+            , #{item.saTemp}
+            , #{item.saTempDate}
+            , #{item.saUser}
+            , #{item.ssoExFlag}
+            , #{item.ssoMailServer}
+            , #{item.ssoPsDate}
+            , #{item.saGnmu}
+            , #{item.saGnmuName}
+            , #{item.ssoLocate}
+            , #{item.saPayxgb}
+            , #{item.saSnbngb}
+            , #{item.saSnbngr}
+            , #{item.saMail}
+            , #{item.ssoSuGnmu}
+            , #{item.ssoCname}
+            , #{item.saNationality}
+            , SYSDATE
+            , NULL
+            , NULL
+            , #{item.ifId}
+            )
+        </foreach>
+    </insert>
+</mapper>

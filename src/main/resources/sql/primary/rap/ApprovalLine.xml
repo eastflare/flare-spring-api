@@ -1,0 +1,522 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.flare.rap.approval.repository.ApprovalLineRepository">
+
+    <!-- Type 2, 3 공용 : 결재라인 Insert -->
+    <insert id="insertApprovalLineMaster">
+        <![CDATA[
+            INSERT INTO TB_RPJTE_APR_LN_M
+            (
+                 APR_REQ_ID
+                ,APR_LN_SEQ
+                ,APR_LN_SNB
+                ,GRNR_APR_TP_DIVS_CD
+                ,APR_FFIL_TP_CD
+                ,PRL_YN
+                ,APR_APRV_USER_ID
+                ,APR_PSG_STAT_CD
+                ,APR_APRV_DTM
+                ,APR_APRV_OPIN_UTF8_CTN
+                ,APR_DLGT_USER_ID
+                ,APR_DLGT_NO
+                ,APR_LN_DIVS_CD
+                ,EML_SNDO_SEQ
+                ,DATA_INS_USER_ID
+                ,DATA_INS_USER_IP
+                ,DATA_INS_DTM
+                ,DATA_UPD_USER_ID
+                ,DATA_UPD_USER_IP
+                ,DATA_UPD_DTM
+                )
+            VALUES
+            (
+                #{approvalLineMaster.aprReqId}
+                ,(SELECT NVL(MAX(APR_LN_SEQ), 0) + 1 FROM TB_RPJTE_APR_LN_M WHERE APR_REQ_ID = #{approvalLineMaster.aprReqId})
+                -- 이전 결재라인이 협의/병렬 이고 지금 Insert 되는 것도 협의/병렬이면, 결재라인차수를 동일하게
+                ,(CASE
+                      WHEN #{approvalLineMaster.grnrAprTpDivsCd} IN ('1','2') AND #{approvalLineMaster.prlYn} = 'Y'
+                      THEN
+                          NVL(
+                              (SELECT CASE
+                                       WHEN GRNR_APR_TP_DIVS_CD IN ('1','2') AND PRL_YN = 'Y' THEN
+                                        APR_LN_SNB
+                                       ELSE
+                                        APR_LN_SNB + 1
+                                     END
+                                FROM TB_RPJTE_APR_LN_M
+                               WHERE APR_REQ_ID = #{approvalLineMaster.aprReqId}
+                                 AND APR_LN_SEQ = (SELECT NVL(MAX(APR_LN_SEQ), 0)
+                                                      FROM TB_RPJTE_APR_LN_M
+                                                     WHERE APR_REQ_ID = #{approvalLineMaster.aprReqId}
+                                                       AND APR_LN_DIVS_CD = 'APPD'))
+                              ,
+                              (SELECT NVL(MAX(APR_LN_SNB), 0) + 1
+                                  FROM TB_RPJTE_APR_LN_M
+                                 WHERE APR_REQ_ID = #{approvalLineMaster.aprReqId}
+                                   AND APR_LN_DIVS_CD = 'APPD')
+                              )
+                      ELSE
+                          (SELECT NVL(MAX(APR_LN_SNB), 0) + 1
+                             FROM TB_RPJTE_APR_LN_M
+                            WHERE APR_REQ_ID = #{approvalLineMaster.aprReqId}
+                              AND APR_LN_DIVS_CD = 'APPD')
+                      END
+                 )
+                 -- 통보처 'INFR' 이면 NULL으로 설정
+                ,CASE WHEN #{approvalLineMaster.aprLnDivsCd} = 'INFR' THEN '' ELSE #{approvalLineMaster.grnrAprTpDivsCd} END
+                ,CASE WHEN #{approvalLineMaster.aprDlgtUserId} IS NOT NULL THEN 'M' ELSE #{approvalLineMaster.aprFfilTpCd} END
+                ,NVL(#{approvalLineMaster.prlYn},'N')
+                ,#{approvalLineMaster.aprAprvUserId}
+                ,'SAVE'
+                -- 승인일시
+                ,NULL
+                ,#{approvalLineMaster.aprAprvOpinUtf8Ctn}
+                ,#{approvalLineMaster.aprDlgtUserId}
+                ,#{approvalLineMaster.aprDlgtNo}
+                ,#{approvalLineMaster.aprLnDivsCd}
+                ,#{approvalLineMaster.emlSndoSeq}
+                ,#{session.userId}
+                ,#{session.userIp}
+                ,SYSDATE
+                ,#{session.userId}
+                ,#{session.userIp}
+                ,SYSDATE
+            )
+        ]]>
+    </insert>
+
+    <!-- Type3 용 : 위임자를 통보처로 Insert -->
+    <insert id="insertApprovalLineNoticeUserByDelegate">
+        <![CDATA[
+            INSERT INTO TB_RPJTE_APR_LN_M
+                (APR_REQ_ID
+                ,APR_LN_SEQ
+                ,APR_LN_SNB
+                ,GRNR_APR_TP_DIVS_CD
+                ,APR_FFIL_TP_CD
+                ,PRL_YN
+                ,APR_APRV_USER_ID
+                ,APR_PSG_STAT_CD
+                ,APR_APRV_DTM
+                ,APR_APRV_OPIN_UTF8_CTN
+                ,APR_DLGT_USER_ID
+                ,APR_DLGT_NO
+                ,APR_LN_DIVS_CD
+                ,EML_SNDO_SEQ
+                ,DATA_INS_USER_ID
+                ,DATA_INS_USER_IP
+                ,DATA_INS_DTM
+                ,DATA_UPD_USER_ID
+                ,DATA_UPD_USER_IP
+                ,DATA_UPD_DTM)
+            VALUES
+                (#{approvalLineDelegate.aprReqId}
+                ,(SELECT NVL(MAX(APR_LN_SEQ), 0) + 1 FROM TB_RPJTE_APR_LN_M WHERE APR_REQ_ID = #{approvalLineDelegate.aprReqId})
+                ,(SELECT NVL(MAX(APR_LN_SNB), 0) + 1
+                    FROM TB_RPJTE_APR_LN_M
+                   WHERE APR_REQ_ID = #{approvalLineDelegate.aprReqId}
+                     AND APR_LN_DIVS_CD = 'APPD')
+                ,'N'
+                ,NULL
+                ,NULL
+                ,#{approvalLineDelegate.aprDlgtUserId}
+                ,NULL
+                ,NULL
+                ,NULL
+                ,NULL
+                ,NULL
+                ,'INFR'
+                ,NULL
+                ,#{session.userId}
+                ,#{session.userIp}
+                ,SYSDATE
+                ,#{session.userId}
+                ,#{session.userIp}
+                ,SYSDATE)
+        ]]>
+    </insert>
+
+    <delete id="deleteApprovalLineMaster">
+        <![CDATA[
+            DELETE
+              FROM TB_RPJTE_APR_LN_M
+             WHERE APR_REQ_ID = #{aprReqId}
+        ]]>
+    </delete>
+
+    <!-- Type3 용 : 결재라인을 요청상태로 변경 -->
+    <update id="updateApprovalLineToRequest">
+        UPDATE TB_RPJTE_APR_LN_M
+        SET APR_PSG_STAT_CD      = #{approvalLineUpdate.aprPsgStatCd}
+        ,DATA_UPD_USER_ID     = #{session.userId}
+        ,DATA_UPD_USER_IP     = #{session.userIp}
+        ,DATA_UPD_DTM         = SYSDATE
+        WHERE APR_REQ_ID  = #{approvalLineUpdate.aprReqId}
+        AND APR_LN_DIVS_CD = 'APPD' -- 통보처 빼고
+        AND APR_PSG_STAT_CD = 'SAVE' -- 결재요청이 안된 상태
+    </update>
+
+    <!-- Type3 용 : 결재라인을 수임자로 변경 -->
+    <update id="updateApprovalLineDelegate">
+        UPDATE TB_RPJTE_APR_LN_M
+        SET APR_APRV_USER_ID     = #{approvalLineDelegate.aprDeleUserId}
+        ,APR_DLGT_USER_ID     = #{approvalLineDelegate.aprDlgtUserId}
+        ,APR_DLGT_NO          = #{approvalLineDelegate.aprDlgtNo}
+        ,APR_FFIL_TP_CD       = 'M'
+        ,DATA_UPD_USER_ID     = #{session.userId}
+        ,DATA_UPD_USER_IP     = #{session.userIp}
+        ,DATA_UPD_DTM         = SYSDATE
+        WHERE APR_REQ_ID = #{approvalLineDelegate.aprReqId}
+        AND APR_LN_SEQ = #{approvalLineDelegate.aprLnSeq}
+        AND APR_LN_DIVS_CD = 'APPD' -- 통보처 빼고
+        AND APR_PSG_STAT_CD IN ('SAVE', 'WAIT') -- 결재요청이 안된 상태
+    </update>
+
+    <!-- Type3 용 : 결재라인을 자가승인으로 Update -->
+    <update id="updateApprovalLineSelfApproved">
+        <![CDATA[
+            UPDATE TB_RPJTE_APR_LN_M AL
+               SET AL.APR_PSG_STAT_CD        = DECODE(AL.GRNR_APR_TP_DIVS_CD
+                                                      , '0', 'APPROVE'
+                                                      , '1', 'OK'
+                                                      , '6', 'AGREE'
+                                                      , '9', 'APPROVE'
+                                                      , NULL)
+                  ,AL.GRNR_APR_TP_DIVS_CD    = '9'
+                  ,AL.APR_FFIL_TP_CD = 'S'
+                  ,AL.APR_APRV_DTM           = SYSDATE
+                  ,AL.APR_APRV_OPIN_UTF8_CTN = DECODE(AL.GRNR_APR_TP_DIVS_CD
+                                                      , '0', '자가승인'
+                                                      , '1', '자가협의'
+                                                      , '6', '자가합의(합의완료)'
+                                                      , '9', '자가승인'
+                                                      , NULL)
+                  ,AL.DATA_UPD_USER_ID       = #{session.userId}
+                  ,AL.DATA_UPD_USER_IP       = #{session.userIp}
+                  ,AL.DATA_UPD_DTM           = SYSDATE
+             WHERE AL.APR_REQ_ID = #{approval.aprReqId}
+               AND AL.APR_LN_SEQ = #{approval.aprLnSeq}
+
+        ]]>
+    </update>
+
+  <!-- Type2, 3 용 : 반려 이후 결재라인 상태 Update -->
+  <update id="updateApprovalLineAfterReject">
+    <![CDATA[
+      UPDATE TB_RPJTE_APR_LN_M
+         SET APR_PSG_STAT_CD  = NULL
+          ,DATA_UPD_USER_ID = #{session.userId}
+          ,DATA_UPD_USER_IP = #{session.userIp}
+          ,DATA_UPD_DTM     = SYSDATE
+       WHERE APR_LN_DIVS_CD = 'APPD'
+         AND APR_REQ_ID = #{approval.aprReqId}
+         AND APR_PSG_STAT_CD = 'WAIT'
+
+    ]]>
+  </update>
+
+  <!-- Type3 용 : 결재라인 결재 Update -->
+  <update id="updateApprovalLineApprove">
+    <![CDATA[
+      UPDATE TB_RPJTE_APR_LN_M
+         SET APR_PSG_STAT_CD  = #{approvalLine.aprPsgStatCd}
+          ,APR_APRV_DTM     = SYSDATE
+          ,APR_APRV_OPIN_UTF8_CTN = #{approvalLine.aprAprvOpinUtf8Ctn}
+          ,DATA_UPD_USER_ID = #{session.userId}
+          ,DATA_UPD_USER_IP = #{session.userIp}
+          ,DATA_UPD_DTM     = SYSDATE
+       WHERE APR_LN_DIVS_CD = 'APPD'
+         AND APR_REQ_ID = #{approvalLine.aprReqId}
+         AND APR_LN_SEQ = #{approvalLine.aprLnSeq}
+         AND APR_PSG_STAT_CD = 'WAIT'
+    ]]>
+  </update>
+
+  <!-- Type2 용 : 통합결재에서 전송한 결재결과로 결재라인 Update -->
+  <update id="updateType2ApprovalLine">
+    <![CDATA[
+      UPDATE TB_RPJTE_APR_LN_M
+         SET APR_PSG_STAT_CD  = #{approvalLine.aprPsgStatCd}
+          ,APR_APRV_DTM     = TO_DATE(#{approvalLine.aprAprvDtm},'YYYYMMDDHH24MISS')
+          ,APR_APRV_OPIN_UTF8_CTN = #{approvalLine.aprAprvOpinUtf8Ctn}
+          ,APR_FFIL_TP_CD = CASE WHEN #{approvalLine.aprFfilTpCd} = 'M' THEN  #{approvalLine.aprFfilTpCd} ELSE APR_FFIL_TP_CD END
+          ,APR_APRV_USER_ID = CASE WHEN #{approvalLine.aprFfilTpCd} = 'M' THEN  ( SELECT ZE.USER_ID FROM TB_RPJTE_EMP_M ZE WHERE ZE.EMP_NO = #{approvalLine.aprAprvEmpNo} ) ELSE APR_APRV_USER_ID END
+          ,APR_DLGT_USER_ID = CASE WHEN #{approvalLine.aprFfilTpCd} = 'M' THEN  ( SELECT ZE.USER_ID FROM TB_RPJTE_EMP_M ZE WHERE ZE.EMP_NO = #{approvalLine.aprDlgtEmpNo} ) ELSE APR_DLGT_USER_ID END
+          ,DATA_UPD_USER_ID = ( SELECT ZE.USER_ID FROM TB_RPJTE_EMP_M ZE WHERE ZE.EMP_NO = #{approvalLine.aprAprvEmpNo} )
+          ,DATA_UPD_USER_IP = 'SAP PI'
+          ,DATA_UPD_DTM     = SYSDATE
+       WHERE APR_LN_DIVS_CD = 'APPD'
+         AND APR_REQ_ID = #{approvalLine.aprReqId}
+         AND APR_LN_SEQ = ( SELECT MIN(ZZ.APR_LN_SEQ)
+                  FROM TB_RPJTE_APR_LN_M ZZ
+                   WHERE ZZ.APR_REQ_ID = #{approvalLine.aprReqId}
+                   AND ZZ.APR_LN_DIVS_CD = 'APPD'
+                   AND ZZ.APR_PSG_STAT_CD = 'WAIT'
+                   AND ZZ.APR_APRV_USER_ID = ( SELECT ZE.USER_ID FROM TB_RPJTE_EMP_M ZE WHERE ZE.EMP_NO = #{approvalLine.aprAprvEmpNo} ) )
+         AND APR_PSG_STAT_CD = 'WAIT'
+    ]]>
+  </update>
+
+  <!-- Type2 용 : 통합결재에서 전송한 전체 결재라인 변경을 저장한후, 사번으로 되어있는 컬럼으로 모두 USER_ID로 Update -->
+  <update id="updateType2ApprovalLineEmpNoToUserId">
+    <![CDATA[
+      UPDATE TB_RPJTE_APR_LN_M A
+         SET A.APR_APRV_USER_ID = NVL(( SELECT ZE.USER_ID FROM TB_RPJTE_EMP_M ZE WHERE ZE.EMP_NO = A.APR_APRV_USER_ID ), A.APR_APRV_USER_ID)
+          ,A.APR_DLGT_USER_ID = NVL(( SELECT ZE.USER_ID FROM TB_RPJTE_EMP_M ZE WHERE ZE.EMP_NO = A.APR_DLGT_USER_ID ), A.APR_DLGT_USER_ID)
+          ,A.DATA_INS_USER_ID = NVL(( SELECT ZE.USER_ID FROM TB_RPJTE_EMP_M ZE WHERE ZE.EMP_NO = A.DATA_INS_USER_ID ), A.DATA_INS_USER_ID)
+          ,A.DATA_UPD_USER_ID = NVL(( SELECT ZE.USER_ID FROM TB_RPJTE_EMP_M ZE WHERE ZE.EMP_NO = A.DATA_UPD_USER_ID ), A.DATA_UPD_USER_ID)
+       WHERE A.APR_REQ_ID = #{aprReqId}
+    ]]>
+  </update>
+
+  <!-- Type3 용 : 결재라인을 취소상태로 변경 -->
+  <update id="updateApprovalLineToCancel">
+    <![CDATA[
+      UPDATE TB_RPJTE_APR_LN_M
+         SET APR_PSG_STAT_CD  = 'CANCEL'
+          ,DATA_UPD_USER_ID = #{session.userId}
+          ,DATA_UPD_USER_IP = #{session.userIp}
+          ,DATA_INS_DTM     = SYSDATE
+       WHERE APR_REQ_ID = #{approval.aprReqId}
+         AND APR_LN_SEQ = #{approval.aprLnSeq}
+    ]]>
+  </update>
+
+  <!-- Type3 용 : 결재라인을 최종승인상태로 변경 -->
+  <update id="updateType3ApprovalLineToComplete">
+    <![CDATA[
+      UPDATE TB_RPJTE_APR_LN_M
+         SET APR_PSG_STAT_CD  = 'COMPLETE'
+          ,DATA_UPD_USER_ID = #{session.userId}
+          ,DATA_UPD_USER_IP = #{session.userIp}
+          ,DATA_INS_DTM     = SYSDATE
+       WHERE APR_REQ_ID = #{approval.aprReqId}
+         AND APR_LN_SEQ = #{approval.aprLnSeq}
+    ]]>
+  </update>
+
+  <!-- Type3 용 : 위임자가 통보처에 있는지 확인 -->
+  <select id="selectApprovalLineDelegatorCount" resultType="int">
+    SELECT COUNT(1) AS TOTAL_COUNT
+    FROM TB_RPJTE_APR_LN_M
+    WHERE APR_REQ_ID = #{approvalLineDelegate.aprReqId}
+    AND APR_LN_DIVS_CD = 'INFR'
+    AND APR_APRV_USER_ID = #{approvalLineDelegate.aprDlgtUserId}
+  </select>
+
+  <!-- Type2, 3 용 : 결재라인중 반려가 있는지 확인 -->
+  <select id="selectCheckRejectCount" resultType="int">
+    <![CDATA[
+      SELECT COUNT(1) AS REJ_CNT
+      FROM   TB_RPJTE_APR_LN_M AL
+      WHERE  AL.APR_REQ_ID = #{aprReqId}
+      AND    AL.APR_LN_DIVS_CD = 'APPD'
+      AND    AL.APR_LN_SEQ = (SELECT MAX(APR_LN_SEQ)
+               FROM   TB_RPJTE_APR_LN_M
+               WHERE  APR_LN_DIVS_CD = 'APPD'
+               AND    APR_PSG_STAT_CD IN ('REJECT', 'DISAGREE', 'NO')
+               AND    APR_REQ_ID = #{aprReqId})
+
+    ]]>
+  </select>
+
+  <!-- Type2, 3 용 : 모든 결재가 완료됐는지 확인 -->
+  <select id="selectGetAllApproveYn" resultType="string">
+    <![CDATA[
+      SELECT CASE WHEN SUM( CASE WHEN AL.APR_LN_DIVS_CD = 'APPD' THEN 1 ELSE 0 END ) = 0
+            THEN 'N'
+            WHEN SUM( CASE WHEN AL.APR_LN_DIVS_CD = 'APPD' THEN 1 ELSE 0 END )
+                = SUM(CASE WHEN AL.APR_PSG_STAT_CD IN ('APPROVE', 'COMPLETE', 'AGREE','OK') THEN 1 ELSE 0 END)
+            THEN 'Y'
+            ELSE 'N'
+          END AS IS_ALL_APPV_YN
+        FROM TB_RPJTE_APR_LN_M AL
+      WHERE  AL.APR_REQ_ID = #{aprReqId}
+        AND  AL.APR_LN_DIVS_CD = 'APPD'
+    ]]>
+  </select>
+
+  <!-- Type2,3 용 : 최종 결재라인의 데이터 조회 (결재완료 검증용) -->
+  <select id="selectLastApprovalLineStatus" resultType="com.flare.rap.approval.model.ApprovalLineResponseVO">
+    <![CDATA[
+      SELECT AL.APR_REQ_ID
+          ,AL.APR_LN_SEQ
+          ,AL.APR_LN_SNB
+          ,AL.APR_APRV_USER_ID
+          ,AL.APR_PSG_STAT_CD
+          ,CASE WHEN AL.APR_PSG_STAT_CD IN ('APPROVE', 'COMPLETE', 'AGREE','OK') THEN 'Y' ELSE 'N' END AS APV_YN
+      FROM   TB_RPJTE_APR_LN_M AL
+      WHERE  AL.APR_REQ_ID = #{aprReqId}
+      AND    AL.APR_LN_DIVS_CD = 'APPD'
+      AND    AL.APR_LN_SEQ = (SELECT MAX(APR_LN_SEQ)
+                    FROM TB_RPJTE_APR_LN_M
+                   WHERE APR_LN_DIVS_CD = 'APPD'
+                     AND APR_REQ_ID = #{aprReqId})
+    ]]>
+  </select>
+
+  <!-- Type 3 용 : 현재 결재처리 하려는 라인이 세션의 사용자가 맞는지 확인 -->
+  <select id="selectApprovalLineCheck" resultType="com.flare.rap.approval.model.ApprovalLineCheckResponseVO">
+    <![CDATA[
+      SELECT DECODE(COUNT(1), 0, 'N', 'Y') AS APPROVER_YN
+          ,MIN(APR_PSG_STAT_CD) AS APR_PSG_STAT_CD
+        FROM TB_RPJTE_APR_LN_M
+       WHERE APR_LN_DIVS_CD = 'APPD'
+         AND APR_REQ_ID = #{approvalLine.aprReqId}
+         AND APR_LN_SEQ = #{approvalLine.aprLnSeq}
+         AND APR_APRV_USER_ID = #{session.userId}
+     ]]>
+  </select>
+
+  <!-- Type 2,3 공용 : 결재라인을 그대로 조회 -->
+  <select id="selectApprovalLineMaster" resultType="com.flare.rap.approval.model.ApprovalLineRequestVO">
+    <![CDATA[
+      SELECT AL.APR_REQ_ID
+          ,AL.APR_LN_SEQ
+          ,AL.APR_LN_SNB
+          ,AL.GRNR_APR_TP_DIVS_CD
+          ,AL.APR_FFIL_TP_CD
+          ,AL.PRL_YN
+          ,AL.APR_APRV_USER_ID
+          ,AL.APR_PSG_STAT_CD
+          ,AL.APR_APRV_DTM
+          ,AL.APR_APRV_OPIN_UTF8_CTN
+          ,AL.APR_DLGT_USER_ID
+          ,AL.APR_DLGT_NO
+          ,AL.APR_LN_DIVS_CD
+          ,AL.EML_SNDO_SEQ
+        FROM TB_RPJTE_APR_LN_M AL
+      WHERE  AL.APR_REQ_ID = #{aprReqId}
+      ORDER BY AL.APR_LN_SEQ
+     ]]>
+  </select>
+
+  <!-- Type3 용 : 결재취소가 가능한 UserId 인지 확인 -->
+    <select id="selectCancelApprovalLine" resultType="long">
+        <![CDATA[
+            SELECT NVL(MIN(APR_LN_SEQ), 0) AS APR_LN_SEQ
+              FROM TB_RPJTE_APR_LN_M
+             WHERE APR_LN_DIVS_CD = 'APPD'
+               AND APR_PSG_STAT_CD = 'WAIT'
+               AND APR_REQ_ID = #{aprReqId}
+        ]]>
+    </select>
+
+    <!-- Type3 용 : 결재 대기중인 결재라인중에 결재위임이 가능한 결재라인이 있는지 확인 -->
+    <select id="selectApproveLineDelegateList"  resultType="com.flare.rap.approval.model.ApprovalLineDelegateResponseVO">
+        <![CDATA[
+            SELECT *
+              FROM (SELECT AM.APR_DLGT_NO
+                          ,AM.APR_DLGT_USER_ID
+                          ,FN_GET_USER_INFO(AM.APR_DLGT_USER_ID, #{session.langCd}, 1) AS APR_DLGT_USER_INFO
+                          ,AM.APR_DELE_USER_ID
+                          ,FN_GET_USER_INFO(AM.APR_DELE_USER_ID, #{session.langCd}, 1) AS APR_DELE_USER_INFO
+                          ,AM.APR_DLGT_ST_DT
+                          ,AM.APR_DLGT_END_DT
+                          ,RANK() OVER(PARTITION BY AM.APR_DLGT_USER_ID ORDER BY AM.DATA_INS_DTM DESC) AS RN
+                          ,AL.APR_REQ_ID
+                          ,AL.APR_LN_SEQ
+                      FROM TB_RPJTE_APR_DLGT_M AM
+                      JOIN (SELECT CAL.USER_ID
+                                  ,CAL.APR_LN_SEQ
+                                  ,RM.APR_REQ_ID
+                             FROM TB_RPJTE_APR_REQ_M RM
+                             LEFT OUTER JOIN (SELECT AL2.APR_REQ_ID
+                                                   ,EM2.EMP_NO
+                                                   ,EM2.USER_ID
+                                                   ,AL2.APR_LN_SEQ
+                                               FROM TB_RPJTE_APR_LN_M AL2
+                                               JOIN TB_RPJTE_EMP_M EM2
+                                                 ON AL2.APR_APRV_USER_ID = EM2.USER_ID
+                                              WHERE AL2.APR_REQ_ID = #{aprReqId}
+                                                AND AL2.APR_LN_DIVS_CD = 'APPD'
+                                                AND AL2.APR_PSG_STAT_CD IN ('SAVE', 'WAIT')) CAL
+                               ON RM.APR_REQ_ID = CAL.APR_REQ_ID
+                            WHERE RM.APR_REQ_ID = #{aprReqId}) AL
+                        ON AM.APR_DLGT_USER_ID = AL.USER_ID
+                     WHERE AM.USE_YN = 'Y'
+                       AND SYSDATE BETWEEN TO_DATE(AM.APR_DLGT_ST_DT || ' 00:00:00','YYYY-MM-DD HH24:MI:SS') AND TO_DATE(AM.APR_DLGT_END_DT || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')) AM
+             WHERE AM.RN = 1
+        ]]>
+    </select>
+
+
+    <!-- Type 3  : 모바일용 결재라인을 그대로 조회 -->
+    <select id="selectApprovalLineMasterForMobile" resultType="com.flare.rap.approval.model.ApprovalMobileApproversVO">
+        <![CDATA[
+            SELECT EM.EMP_NO AS APPR_APPROVE_EMP_NO
+                  ,FN_GET_USER_NM(AL.APR_APRV_USER_ID, #{session.langCd}, 'ID') AS APPR_APPROVE_EMP_NAME
+                  ,FN_GET_USER_DEPT_NM(AL.APR_APRV_USER_ID, #{session.langCd}, 'ID') AS APPR_APPROVE_EMP_DEPT
+                  ,FN_GET_USER_JIKWI_NM(AL.APR_APRV_USER_ID, #{session.langCd}, 'ID') AS APPR_APPROVE_EMP_TITLE
+                  ,AL.APR_APRV_USER_ID || '@lgensol.com' AS APPR_APPROVE_EMP_EMAIL
+                  ,'' AS APPR_APPROVE_EMP_OFFICE
+                  ,'LG Energy Solution' AS APPR_APPROVE_COMPANY_KOR_NAME
+                  ,TO_CHAR(AL.APR_APRV_DTM, 'YYYYMMDDHH24MISS') AS APPR_APPROVE_DATE
+                  ,CASE
+                     WHEN AL.GRNR_APR_TP_DIVS_CD = '0' -- 결재
+                      THEN
+                      'approval'
+                     WHEN AL.GRNR_APR_TP_DIVS_CD = '1' -- 협의(필수)
+                      THEN
+                      'agree'
+                     WHEN AL.GRNR_APR_TP_DIVS_CD = '2' -- 협의(선택) 사용안함
+                      THEN
+                      'agree'
+                     WHEN AL.GRNR_APR_TP_DIVS_CD = '6' -- 합의
+                      THEN
+                      'consenss'
+                     WHEN AL.GRNR_APR_TP_DIVS_CD = '7' -- 보고
+                      THEN
+                      'report'
+                     WHEN AL.GRNR_APR_TP_DIVS_CD = '8' -- 투자담당
+                      THEN
+                      'approval'
+                     WHEN AL.GRNR_APR_TP_DIVS_CD = '9' -- 자가승인
+                      THEN
+                      'approval'
+                     ELSE
+                      'approval'
+                   END AS APPR_APPROVE_TYPE
+                  , FN_GET_CD_OPT_VAL('APR_PSG_STAT_CD', AL.APR_PSG_STAT_CD, 2) AS APPR_TYPE
+                  ,AL.APR_APRV_OPIN_UTF8_CTN AS APPR_COMMENT
+                  ,CASE
+                     WHEN AL.APR_APRV_USER_ID = #{session.userId} AND
+                          AL.APR_LN_SEQ =
+                          (SELECT MIN(ZZ.APR_LN_SEQ)
+                             FROM TB_RPJTE_APR_LN_M ZZ
+                            WHERE ZZ.APR_REQ_ID = AL.APR_REQ_ID
+                              AND ZZ.APR_LN_DIVS_CD = 'APPD'
+                              AND ZZ.APR_PSG_STAT_CD = 'WAIT'
+                              AND ZZ.APR_APRV_USER_ID = #{session.userId}) THEN
+                      'T'
+                     ELSE
+                      'F'
+                   END AS APPR_CUR_FLAG
+                  ,AL.APR_REQ_ID
+                  ,AL.APR_LN_SEQ
+                  ,AL.APR_LN_SNB
+                  ,AL.GRNR_APR_TP_DIVS_CD
+                  ,AL.APR_FFIL_TP_CD
+                  ,AL.PRL_YN
+                  ,AL.APR_APRV_USER_ID
+                  ,AL.APR_PSG_STAT_CD
+                  ,AL.APR_APRV_DTM
+                  ,AL.APR_APRV_OPIN_UTF8_CTN
+                  ,AL.APR_DLGT_USER_ID
+                  ,AL.APR_DLGT_NO
+                  ,AL.APR_LN_DIVS_CD
+                  ,AL.EML_SNDO_SEQ
+              FROM TB_RPJTE_APR_LN_M AL
+              JOIN TB_RPJTE_EMP_M EM
+                ON AL.APR_APRV_USER_ID = EM.USER_ID
+             WHERE AL.APR_REQ_ID = #{approval.aprReqId}
+               AND AL.APR_LN_DIVS_CD = 'APPD'
+             ORDER BY AL.APR_LN_SEQ
+         ]]>
+    </select>
+
+
+</mapper>

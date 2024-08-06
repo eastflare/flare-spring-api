@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.flare.rap.employee.repository.EmployeeRepository">
+    <select id="selectEmployeeByUserId" resultType="com.flare.rap.session.model.EmployeeVO">
+        SELECT
+             A.USER_ID
+            ,A.EMP_NM
+            ,A.EMP_NO
+            ,A.EMP_ENG_NM
+            ,A.EMP_CNG_NM
+            ,A.DEPT_CD
+            ,A.DEPT_NM
+            ,A.DEPT_ENG_NM
+            ,A.DEPT_CNG_NM
+            ,A.COP_CD
+            ,A.JTI_CD
+            ,A.JTI_NM
+            ,A.JTI_ENG_NM
+            ,A.JTI_CNG_NM
+            ,A.JPS_CD
+            ,A.JPS_NM
+            ,A.JPS_ENG_NM
+            ,A.JPS_CNG_NM
+            ,A.INO_STAT_CD
+            ,A.JCOM_DT
+            ,A.RSGN_DT
+            ,A.UPPR_EMP_NO
+            ,( SELECT ZZ.USER_ID FROM TB_RPJTE_EMP_M ZZ WHERE ZZ.EMP_NO = A.UPPR_EMP_NO AND ROWNUM = 1 ) AS UPPR_USER_ID
+            ,A.ONDU_REGN_CD
+            ,A.ONDU_REGN_NM
+            ,A.SSO_DTPL_NM
+            ,A.OFC_TANO
+            ,A.OFC_PHN
+            ,A.OFC_ETN_PHN
+            ,A.DOC_AUTH_CD
+            ,A.EML_SVR_DMN_IFO_NM
+            ,A.INO_DIVS_CD
+            ,A.EMP_HPHN
+            ,A.CTRY_CD
+            ,A.USE_YN
+        FROM TB_RPJTE_EMP_M A
+        WHERE A.USER_ID = #{userId}
+    </select>
+
+    <select id="selectBbsEmployeeByUserId" resultType="com.flare.rap.employee.model.BbsEmployeeResponseVO">
+       SELECT
+              USER_ID
+             ,EMP_NO
+             ,FN_GET_USER_NM(USER_ID, #{langCd}, 'ID') AS EMP_NM
+             ,DEPT_CD
+             ,FN_GET_DEPT_NM(DEPT_CD, #{langCd}) AS DEPT_NM
+             ,FN_GET_CD_NM('JTI_CD', JTI_CD, #{langCd}) AS JTI_NM
+             ,FN_GET_CD_NM('JPS_CD', JPS_CD, #{langCd}) AS JPS_NM
+             ,OFC_TANO || '-' || OFC_PHN AS OFC_TANO_PHN
+       FROM TB_RPJTE_EMP_M
+        WHERE USER_ID = #{userId}
+    </select>
+
+    <select id="searchEmployees" resultType="com.flare.rap.session.model.EmployeeVO">
+       SELECT
+             USER_ID
+            ,EMP_NO
+            ,EMP_ENG_NM
+            ,EMP_CNG_NM
+            ,DEPT_CD
+            ,DEPT_ENG_NM
+            ,DEPT_CNG_NM
+            ,COP_CD
+            ,JTI_CD
+            ,JTI_NM
+            ,JTI_ENG_NM
+            ,JTI_CNG_NM
+            ,JPS_CD
+            ,JPS_NM
+            ,JPS_ENG_NM
+            ,JPS_CNG_NM
+            ,INO_STAT_CD
+            ,JCOM_DT
+            ,RSGN_DT
+            ,UPPR_EMP_NO
+            ,ONDU_REGN_CD
+            ,ONDU_REGN_NM
+            ,SSO_DTPL_NM
+            ,OFC_TANO
+            ,OFC_PHN
+            ,OFC_ETN_PHN
+            ,DOC_AUTH_CD
+            ,EML_SVR_DMN_IFO_NM
+            ,INO_DIVS_CD
+            ,EMP_HPHN
+            ,USE_YN
+            ,FN_GET_USER_INFO(USER_ID, #{session.langCd}) AS USER_INFO
+            ,FN_GET_USER_NM(USER_ID, #{session.langCd}, 'ID') AS EMP_NM
+            ,FN_GET_DEPT_NM(DEPT_CD, #{session.langCd}) AS DEPT_NM
+         FROM TB_RPJTE_EMP_M
+        WHERE 1=1
+          AND USE_YN = 'Y'
+        <if test='condition.searchItem != null and condition.searchItem != ""'>
+            AND (USER_ID LIKE CONCAT('%'||#{condition.searchItem},'%')
+               OR EMP_NO LIKE CONCAT('%'||#{condition.searchItem},'%')
+               OR EMP_NM LIKE CONCAT('%'||#{condition.searchItem},'%')
+               OR EMP_ENG_NM LIKE CONCAT('%'||#{condition.searchItem},'%')
+               OR EMP_CNG_NM LIKE CONCAT('%'||#{condition.searchItem},'%')
+               OR DEPT_CD LIKE CONCAT('%'||#{condition.searchItem},'%')
+               OR DEPT_NM LIKE CONCAT('%'||#{condition.searchItem},'%')
+               OR DEPT_ENG_NM LIKE CONCAT('%'||#{condition.searchItem},'%')
+               OR DEPT_CNG_NM LIKE CONCAT('%'||#{condition.searchItem},'%'))
+        </if>
+        <if test='condition.deptCd != null and condition.deptCd != ""'>
+            AND DEPT_CD = #{condition.deptCd}
+        </if>
+        <if test='condition.deptNm != null and condition.deptNm != ""'>
+          AND (UPPER(DEPT_NM) LIKE CONCAT('%'|| UPPER(#{condition.deptNm}),'%')
+            OR UPPER(DEPT_ENG_NM) LIKE CONCAT('%'|| UPPER(#{condition.deptNm}),'%')
+            OR UPPER(DEPT_CNG_NM) LIKE CONCAT('%'|| UPPER(#{condition.deptNm}),'%'))
+        </if>
+        <if test='condition.empNm != null and condition.empNm != ""'>
+          AND (UPPER(EMP_NM) LIKE CONCAT('%'|| UPPER(#{condition.empNm}),'%')
+            OR UPPER(EMP_ENG_NM) LIKE CONCAT('%'|| UPPER(#{condition.empNm}),'%')
+            OR UPPER(EMP_CNG_NM) LIKE CONCAT('%'|| UPPER(#{condition.empNm}),'%')
+            OR UPPER(USER_ID) LIKE CONCAT('%'|| UPPER(#{condition.empNm}),'%')
+            OR UPPER(EMP_NO) LIKE CONCAT('%'|| UPPER(#{condition.empNm}),'%'))
+        </if>
+    </select>
+
+    <select id="selectUserInfo" resultType="String">
+        SELECT FN_GET_USER_INFO(#{session.userId}, #{langCd}, 1) AS USER_INFO FROM DUAL
+    </select>
+
+    <select id="selectUserMailAddress" resultType="String">
+        SELECT EML_DMN_IFO_NM
+        FROM TB_RPJTE_EMP_M
+        WHERE USER_ID = #{userId}
+            AND ROWNUM = 1
+    </select>
+
+    <select id="selectUserInfo2" resultType="String">
+        SELECT FN_GET_USER_INFO(#{session.userId}, #{langCd}, 2) AS USER_INFO FROM DUAL
+    </select>
+
+    <select id="selectTeamLeaderIdByDeptCd" resultType="com.flare.rap.employee.model.TeamLeaderInfo">
+        SELECT USER_ID
+              ,FN_GET_USER_NM(USER_ID, #{langCd}, 'ID') AS USER_NM
+         FROM TB_RPJTE_EMP_M
+         WHERE USE_YN = 'Y'
+           AND EMP_NO = (SELECT UPPR_EMP_NO
+                           FROM TB_RPJTE_EMP_M
+                          WHERE DEPT_CD = #{deptCd}
+                            AND UPPR_EMP_NO IS NOT NULL
+                            AND ROWNUM = 1
+                        )
+    </select>
+
+    <select id="selectEmpNoToUserId" resultType="string">
+        <![CDATA[
+            SELECT ZE.USER_ID FROM TB_RPJTE_EMP_M ZE WHERE ZE.EMP_NO = #{empNo}
+        ]]>
+    </select>
+
+    <select id="selectUserIdToEmpNo" resultType="string">
+        <![CDATA[
+            SELECT ZE.EMP_NO FROM TB_RPJTE_EMP_M ZE WHERE ZE.USER_ID = #{userId}
+        ]]>
+    </select>
+</mapper>

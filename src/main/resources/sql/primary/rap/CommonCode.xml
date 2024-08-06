@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.flare.rap.code.repository.CommonCodeRepository">
+    <select id="selectCommonCodeGroups" parameterType="String" resultType="com.flare.rap.code.model.CommonCodeGroupResponseVO">
+        SELECT GCD.CMN_GR_CD
+              ,nvl((SELECT MSG.MSG_TXT_CTN
+                     FROM TB_RPJTE_MSG_M MSG
+                    WHERE MSG.MSG_CTN = GCD.MSG_CTN
+                      AND MSG.LANG_CD = #{langCd}
+                      AND MSG.USE_YN = 'Y'
+                      AND rownum = 1)
+                   ,GCD.CMN_GR_CD_NM) AS CMN_GR_CD_NM
+              ,GCD.CMN_GR_CD_DESC
+              ,GCD.WKT_AREA_DIVS_CD
+              ,GCD.SORT_ORD
+              ,GCD.OPT_VAL_NM1 ,GCD.OPT_VAL_NM2 ,GCD.OPT_VAL_NM3 ,GCD.OPT_VAL_NM4 ,GCD.OPT_VAL_NM5
+              ,GCD.OPT_VAL_NM6 ,GCD.OPT_VAL_NM7 ,GCD.OPT_VAL_NM8 ,GCD.OPT_VAL_NM9 ,GCD.OPT_VAL_NM10
+              ,GCD.OPT_VAL_NM11 ,GCD.OPT_VAL_NM12 ,GCD.OPT_VAL_NM13 ,GCD.OPT_VAL_NM14 ,GCD.OPT_VAL_NM15
+              ,GCD.RMK
+              ,GCD.USE_YN
+              ,GCD.MSG_CTN
+              ,GCD.DATA_INS_USER_ID ,GCD.DATA_INS_USER_IP ,GCD.DATA_INS_DTM
+              ,GCD.DATA_UPD_USER_ID ,GCD.DATA_UPD_USER_IP ,GCD.DATA_UPD_DTM
+          FROM TB_RPJTE_CMN_GR_C GCD
+         WHERE 1=1
+        <if test = 'searchGroupCode != null and searchGroupCode != ""'>
+           AND (UPPER(GCD.CMN_GR_CD) like '%' || UPPER(#{searchGroupCode}) || '%'
+            OR UPPER(GCD.CMN_GR_CD_NM) like '%' || UPPER(#{searchGroupCode}) || '%')
+        </if>
+        <if test = 'useYn != null and useYn != ""'>
+           AND USE_YN = #{useYn}
+        </if>
+        <if test = 'searchCode != null and searchCode != ""'>
+           AND EXISTS
+              (SELECT 1
+                 FROM TB_RPJTE_CMN_C CD
+                WHERE CD.CMN_GR_CD = GCD.CMN_GR_CD
+                  AND (UPPER(CD.CMN_CD) like '%' || UPPER(#{searchCode}) || '%'
+                   OR UPPER(CD.CMN_CD_NM) like '%' || UPPER(#{searchCode}) || '%'))
+        </if>
+         ORDER BY GCD.SORT_ORD, GCD.CMN_GR_CD
+    </select>
+
+    <update id="upsertCommonCodeGroups" keyColumn="CMN_GR_CD">
+        <foreach collection="codeGroups" item="item" open="BEGIN" separator=";" close="; END;">
+        MERGE INTO TB_RPJTE_CMN_GR_C GCD
+        USING dual
+           ON (GCD.CMN_GR_CD = #{item.cmnGrCd})
+        <if test='item.crudKey != "C"'>
+         WHEN MATCHED THEN
+              UPDATE
+                 SET GCD.CMN_GR_CD_NM = #{item.cmnGrCdNm}
+                    ,GCD.CMN_GR_CD_DESC = #{item.cmnGrCdDesc}
+                    ,GCD.WKT_AREA_DIVS_CD = #{item.wktAreaDivsCd}
+                    ,GCD.SORT_ORD = #{item.sortOrd}
+                    ,GCD.MSG_CTN = #{item.msgCtn}
+                    ,GCD.OPT_VAL_NM1 = #{item.optValNm1}
+                    ,GCD.OPT_VAL_NM2 = #{item.optValNm2}
+                    ,GCD.OPT_VAL_NM3 = #{item.optValNm3}
+                    ,GCD.OPT_VAL_NM4 = #{item.optValNm4}
+                    ,GCD.OPT_VAL_NM5 = #{item.optValNm5}
+                    ,GCD.OPT_VAL_NM6 = #{item.optValNm6}
+                    ,GCD.OPT_VAL_NM7 = #{item.optValNm7}
+                    ,GCD.OPT_VAL_NM8 = #{item.optValNm8}
+                    ,GCD.OPT_VAL_NM9 = #{item.optValNm9}
+                    ,GCD.OPT_VAL_NM10 = #{item.optValNm10}
+                    ,GCD.OPT_VAL_NM11 = #{item.optValNm11}
+                    ,GCD.OPT_VAL_NM12 = #{item.optValNm12}
+                    ,GCD.OPT_VAL_NM13 = #{item.optValNm13}
+                    ,GCD.OPT_VAL_NM14 = #{item.optValNm14}
+                    ,GCD.OPT_VAL_NM15 = #{item.optValNm15}
+                    ,GCD.RMK = #{item.rmk}
+                    ,GCD.USE_YN = #{item.useYn}
+                    ,GCD.DATA_UPD_USER_ID = #{session.userId}
+                    ,GCD.DATA_UPD_USER_IP = #{session.userIp}
+                    ,GCD.DATA_UPD_DTM = SYSDATE
+        </if>
+         WHEN NOT MATCHED THEN
+              INSERT (CMN_GR_CD
+                     ,CMN_GR_CD_NM
+                     ,CMN_GR_CD_DESC
+                     ,WKT_AREA_DIVS_CD
+                     ,SORT_ORD
+                     ,MSG_CTN
+                     ,OPT_VAL_NM1 ,OPT_VAL_NM2 ,OPT_VAL_NM3 ,OPT_VAL_NM4 ,OPT_VAL_NM5
+                     ,OPT_VAL_NM6 ,OPT_VAL_NM7 ,OPT_VAL_NM8 ,OPT_VAL_NM9 ,OPT_VAL_NM10
+                     ,OPT_VAL_NM11 ,OPT_VAL_NM12 ,OPT_VAL_NM13 ,OPT_VAL_NM14 ,OPT_VAL_NM15
+                     ,RMK
+                     ,USE_YN
+                     ,DATA_INS_USER_ID ,DATA_INS_USER_IP ,DATA_INS_DTM
+                     ,DATA_UPD_USER_ID ,DATA_UPD_USER_IP ,DATA_UPD_DTM)
+              VALUES (#{item.cmnGrCd}
+                     ,#{item.cmnGrCdNm}
+                     ,#{item.cmnGrCdDesc}
+                     ,#{item.wktAreaDivsCd}
+                     ,#{item.sortOrd}
+                     ,#{item.msgCtn}
+                     ,#{item.optValNm1} ,#{item.optValNm2} ,#{item.optValNm3} ,#{item.optValNm4} ,#{item.optValNm5}
+                     ,#{item.optValNm6} ,#{item.optValNm7} ,#{item.optValNm8} ,#{item.optValNm9} ,#{item.optValNm10}
+                     ,#{item.optValNm11} ,#{item.optValNm12} ,#{item.optValNm13} ,#{item.optValNm14} ,#{item.optValNm15}
+                     ,#{item.rmk}
+                     ,#{item.useYn}
+                     ,#{session.userId}
+                     ,#{session.userIp}
+                     ,SYSDATE
+                     ,#{session.userId}
+                     ,#{session.userIp}
+                     ,SYSDATE)
+      </foreach>
+    </update>
+
+    <delete id="deleteCommonCodeGroups">
+        DELETE
+        FROM TB_RPJTE_CMN_GR_C GCD
+        WHERE GCD.CMN_GR_CD IN
+        <foreach collection="codeGroups" item="codeGroup" open="(" separator="," close=")">
+            #{codeGroup.cmnGrCd}
+        </foreach>
+    </delete>
+
+    <delete id="deleteCommonCodesByCodeGroup">
+        DELETE
+        FROM TB_RPJTE_CMN_C CD
+        WHERE CD.CMN_GR_CD IN
+        <foreach collection="codeGroups" item="codeGroup" open="(" separator="," close=")">
+            #{codeGroup.cmnGrCd}
+        </foreach>
+    </delete>
+
+    <select id="selectCommonCodes" parameterType="String" resultType="com.flare.rap.code.model.CommonCodeResponseVO">
+        SELECT CD.CMN_GR_CD
+              ,CD.CMN_CD
+              ,CD.CMN_CD_NM
+              ,CD.MSG_CTN
+              ,CD.CMN_CD_DESC
+              ,CD.UPPR_CMN_CD
+              ,CD.SORT_ORD
+              ,CD.USE_YN
+              ,CD.OPT_VAL_CTN1 ,CD.OPT_VAL_CTN2 ,CD.OPT_VAL_CTN3 ,CD.OPT_VAL_CTN4 ,CD.OPT_VAL_CTN5
+              ,CD.OPT_VAL_CTN6 ,CD.OPT_VAL_CTN7 ,CD.OPT_VAL_CTN8 ,CD.OPT_VAL_CTN9 ,CD.OPT_VAL_CTN10
+              ,CD.OPT_VAL_CTN11 ,CD.OPT_VAL_CTN12 ,CD.OPT_VAL_CTN13 ,CD.OPT_VAL_CTN14 ,CD.OPT_VAL_CTN15
+              ,CD.DATA_INS_USER_ID ,CD.DATA_INS_USER_IP ,CD.DATA_INS_DTM
+              ,CD.DATA_UPD_USER_ID ,CD.DATA_UPD_USER_IP ,CD.DATA_UPD_DTM
+          FROM TB_RPJTE_CMN_C CD
+         WHERE CD.CMN_GR_CD = #{cmnGrCd}
+         ORDER BY CD.USE_YN DESC, CD.SORT_ORD
+    </select>
+
+    <select id="selectCommonCodesNoLangCd" resultType="com.flare.rap.code.model.CommonCodeResponseVO">
+        <![CDATA[
+        SELECT CD.CMN_GR_CD
+              ,CD.CMN_CD
+              ,CD.CMN_CD_NM
+              ,CD.MSG_CTN
+              ,CD.CMN_CD_DESC
+              ,CD.UPPR_CMN_CD
+              ,CD.SORT_ORD
+              ,CD.USE_YN
+              ,CD.OPT_VAL_CTN1 ,CD.OPT_VAL_CTN2 ,CD.OPT_VAL_CTN3 ,CD.OPT_VAL_CTN4 ,CD.OPT_VAL_CTN5
+              ,CD.OPT_VAL_CTN6 ,CD.OPT_VAL_CTN7 ,CD.OPT_VAL_CTN8 ,CD.OPT_VAL_CTN9 ,CD.OPT_VAL_CTN10
+              ,CD.OPT_VAL_CTN11 ,CD.OPT_VAL_CTN12 ,CD.OPT_VAL_CTN13 ,CD.OPT_VAL_CTN14 ,CD.OPT_VAL_CTN15
+              ,CD.DATA_INS_USER_ID ,CD.DATA_INS_USER_IP ,CD.DATA_INS_DTM
+              ,CD.DATA_UPD_USER_ID ,CD.DATA_UPD_USER_IP ,CD.DATA_UPD_DTM
+          FROM TB_RPJTE_CMN_C CD
+         WHERE CD.CMN_GR_CD = #{cmnGrCd}
+         ORDER BY CD.USE_YN DESC, CD.SORT_ORD
+        ]]>
+    </select>
+
+    <update id="upsertCommonCodes" keyColumn="COMMON_CODE_TYPE_CODE,COMMON_CODE">
+      <foreach collection="codes" item="item" open="BEGIN" separator=";" close="; END;">
+        MERGE INTO TB_RPJTE_CMN_C CD
+        USING dual
+           ON (CD.CMN_GR_CD = #{item.cmnGrCd} AND CD.CMN_CD = #{item.cmnCd})
+        <if test='item.crudKey != "C"'>
+         WHEN MATCHED THEN
+              UPDATE
+                 SET CD.CMN_CD_NM = #{item.cmnCdNm}
+                    ,CD.CMN_CD_DESC = #{item.cmnCdDesc}
+                    ,CD.UPPR_CMN_CD = #{item.upprCmnCd}
+                    ,CD.SORT_ORD = #{item.sortOrd}
+                    ,CD.MSG_CTN = #{item.msgCtn}
+                    ,CD.USE_YN = #{item.useYn}
+                    ,CD.OPT_VAL_CTN1 = #{item.optValCtn1}
+                    ,CD.OPT_VAL_CTN2 = #{item.optValCtn2}
+                    ,CD.OPT_VAL_CTN3 = #{item.optValCtn3}
+                    ,CD.OPT_VAL_CTN4 = #{item.optValCtn4}
+                    ,CD.OPT_VAL_CTN5 = #{item.optValCtn5}
+                    ,CD.OPT_VAL_CTN6 = #{item.optValCtn6}
+                    ,CD.OPT_VAL_CTN7 = #{item.optValCtn7}
+                    ,CD.OPT_VAL_CTN8 = #{item.optValCtn8}
+                    ,CD.OPT_VAL_CTN9 = #{item.optValCtn9}
+                    ,CD.OPT_VAL_CTN10 = #{item.optValCtn10}
+                    ,CD.OPT_VAL_CTN11 = #{item.optValCtn11}
+                    ,CD.OPT_VAL_CTN12 = #{item.optValCtn12}
+                    ,CD.OPT_VAL_CTN13 = #{item.optValCtn13}
+                    ,CD.OPT_VAL_CTN14 = #{item.optValCtn14}
+                    ,CD.OPT_VAL_CTN15 = #{item.optValCtn15}
+                    ,CD.DATA_UPD_USER_ID = #{session.userId}
+                    ,CD.DATA_UPD_USER_IP = #{session.userIp}
+                    ,CD.DATA_UPD_DTM = SYSDATE
+        </if>
+         WHEN NOT MATCHED THEN
+              INSERT (CMN_GR_CD
+                     ,CMN_CD
+                     ,CMN_CD_NM
+                     ,CMN_CD_DESC
+                     ,UPPR_CMN_CD
+                     ,SORT_ORD
+                     ,MSG_CTN
+                     ,USE_YN
+                     ,OPT_VAL_CTN1 ,OPT_VAL_CTN2 ,OPT_VAL_CTN3 ,OPT_VAL_CTN4 ,OPT_VAL_CTN5
+                     ,OPT_VAL_CTN6 ,OPT_VAL_CTN7 ,OPT_VAL_CTN8 ,OPT_VAL_CTN9 ,OPT_VAL_CTN10
+                     ,OPT_VAL_CTN11 ,OPT_VAL_CTN12 ,OPT_VAL_CTN13 ,OPT_VAL_CTN14 ,OPT_VAL_CTN15
+                     ,DATA_INS_USER_ID ,DATA_INS_USER_IP ,DATA_INS_DTM
+                     ,DATA_UPD_USER_ID ,DATA_UPD_USER_IP ,DATA_UPD_DTM)
+              VALUES (#{item.cmnGrCd}
+                     ,#{item.cmnCd}
+                     ,#{item.cmnCdNm}
+                     ,#{item.cmnCdDesc}
+                     ,#{item.upprCmnCd}
+                     ,#{item.sortOrd}
+                     ,#{item.msgCtn}
+                     ,#{item.useYn}
+                     ,#{item.optValCtn1} ,#{item.optValCtn2} ,#{item.optValCtn3} ,#{item.optValCtn4} ,#{item.optValCtn5}
+                     ,#{item.optValCtn6} ,#{item.optValCtn7} ,#{item.optValCtn8} ,#{item.optValCtn9} ,#{item.optValCtn10}
+                     ,#{item.optValCtn11} ,#{item.optValCtn12} ,#{item.optValCtn13} ,#{item.optValCtn14} ,#{item.optValCtn15}
+                     ,#{session.userId}
+                     ,#{session.userIp}
+                     ,SYSDATE
+                     ,#{session.userId}
+                     ,#{session.userIp}
+                     ,SYSDATE)
+      </foreach>
+    </update>
+
+    <select id="selectCommonCodeHeader" resultType="com.flare.rap.code.model.CommonCodeHeaderResponseVO">
+    SELECT GCD.OPT_VAL_NM1 ,GCD.OPT_VAL_NM2 ,GCD.OPT_VAL_NM3 ,GCD.OPT_VAL_NM4 ,GCD.OPT_VAL_NM5
+          ,GCD.OPT_VAL_NM6 ,GCD.OPT_VAL_NM7 ,GCD.OPT_VAL_NM8 ,GCD.OPT_VAL_NM9 ,GCD.OPT_VAL_NM10
+          ,GCD.OPT_VAL_NM11 ,GCD.OPT_VAL_NM12 ,GCD.OPT_VAL_NM13 ,GCD.OPT_VAL_NM14 ,GCD.OPT_VAL_NM15
+      FROM TB_RPJTE_CMN_GR_C GCD
+     WHERE GCD.CMN_GR_CD = #{cmnGrCd}
+    </select>
+
+    <delete id="deleteCommonCodes">
+        DELETE
+        FROM TB_RPJTE_CMN_C CD
+        WHERE CD.CMN_CD IN
+        <foreach collection="codes" item="code" open="(" separator="," close=")">
+            #{code.cmnCd}
+        </foreach>
+    </delete>
+
+    <select id="selectCommonCodeNames" resultType="com.flare.rap.code.model.CommonCodeNameResponseVO">
+        <![CDATA[
+         SELECT C.CMN_CD 
+               ,NVL(M.MSG_TXT_CTN, C.CMN_CD_NM) AS CMN_CD_NM
+               ,CASE WHEN #{cmnGrCd} IN ('COP_CD') AND #{langCd} = 'ko'
+                     THEN C.OPT_VAL_CTN4
+                     WHEN #{cmnGrCd} IN ('COP_CD') AND #{langCd} = 'en'
+                     THEN C.OPT_VAL_CTN5
+                     WHEN #{cmnGrCd} IN ('COP_CD') AND #{langCd} = 'zhC'
+                     THEN C.OPT_VAL_CTN6
+                     WHEN #{cmnGrCd} IN ('COP_CD') AND #{langCd} = 'zhT'
+                     THEN C.OPT_VAL_CTN7
+                     WHEN #{cmnGrCd} IN ('COP_CD') AND #{langCd} = 'pl'
+                     THEN C.OPT_VAL_CTN8
+                     ELSE CMN_CD_DESC
+                 END AS CMN_CD_DESC
+               ,C.UPPR_CMN_CD
+               ,C.CMN_GR_CD
+           FROM TB_RPJTE_CMN_C C
+      LEFT JOIN TB_RPJTE_MSG_M M
+             ON ( C.MSG_CTN = M.MSG_CTN AND M.USE_YN = 'Y' AND M.LANG_CD = #{langCd} )
+          WHERE C.CMN_GR_CD  = #{cmnGrCd}
+            AND C.USE_YN = 'Y'
+       ORDER BY C.SORT_ORD
+        ]]>
+    </select>
+
+    <select id="selectCommonCodeNamesWithCode" resultType="com.flare.rap.code.model.CommonCodeNameResponseVO">
+        SELECT C.CMN_CD
+        ,C.CMN_CD || '::' || NVL(M.MSG_TXT_CTN, C.CMN_CD_NM) AS CMN_CD_NM
+        ,CMN_CD_DESC
+        ,C.UPPR_CMN_CD
+        ,C.CMN_GR_CD
+        FROM TB_RPJTE_CMN_C C
+        LEFT JOIN TB_RPJTE_MSG_M M
+        ON ( C.MSG_CTN = M.MSG_CTN AND M.USE_YN = 'Y' AND M.LANG_CD = #{langCd} )
+        WHERE C.CMN_GR_CD  = #{cmnGrCd}
+        AND C.USE_YN = 'Y'
+        ORDER BY C.SORT_ORD
+    </select>
+
+    <select id="selectCommonCodeNamesCondition" resultType="com.flare.rap.code.model.CommonCodeNameResponseVO">
+      SELECT C.CMN_CD 
+          ,NVL(M.MSG_TXT_CTN, C.CMN_CD_NM) AS CMN_CD_NM
+           ,C.CMN_GR_CD
+        FROM TB_RPJTE_CMN_C C
+        LEFT JOIN TB_RPJTE_MSG_M M
+           ON ( C.MSG_CTN = M.MSG_CTN AND M.USE_YN = 'Y' AND M.LANG_CD = #{langCd} )
+        WHERE C.CMN_GR_CD  = #{condition.cmnGrCd}
+            <if test='condition.optValCtn1 != null and condition.optValCtn1 != ""'>
+                  AND C.OPT_VAL_CTN1 = #{condition.optValCtn1}
+            </if>
+            <if test='condition.optValCtn2 != null and condition.optValCtn2 != ""'>
+                  AND C.OPT_VAL_CTN2 = #{condition.optValCtn2}
+            </if>
+            <if test='condition.optValCtn3 != null and condition.optValCtn3 != ""'>
+                  AND C.OPT_VAL_CTN3 = #{condition.optValCtn3}
+            </if>
+            <if test='condition.optValCtn4 != null and condition.optValCtn4 != ""'>
+                  AND C.OPT_VAL_CTN4 = #{condition.optValCtn4}
+            </if>
+            <if test='condition.optValCtn5 != null and condition.optValCtn5 != ""'>
+                  AND C.OPT_VAL_CTN5 = #{condition.optValCtn5}
+            </if>
+            <if test='condition.optValCtn6 != null and condition.optValCtn6 != ""'>
+                  AND C.OPT_VAL_CTN6 = #{condition.optValCtn6}
+            </if>
+            <if test='condition.optValCtn7 != null and condition.optValCtn7 != ""'>
+                  AND C.OPT_VAL_CTN7 = #{condition.optValCtn7}
+            </if>
+            <if test='condition.optValCtn8 != null and condition.optValCtn8 != ""'>
+                  AND C.OPT_VAL_CTN8 = #{condition.optValCtn8}
+            </if>
+            <if test='condition.optValCtn9 != null and condition.optValCtn9 != ""'>
+                  AND C.OPT_VAL_CTN9 = #{condition.optValCtn9}
+            </if>
+            <if test='condition.optValCtn10 != null and condition.optValCtn10 != ""'>
+                  AND C.OPT_VAL_CTN10 = #{condition.optValCtn10}
+            </if>
+            <if test='condition.optValCtn11 != null and condition.optValCtn11 != ""'>
+                  AND C.OPT_VAL_CTN11 = #{condition.optValCtn11}
+            </if>
+            <if test='condition.optValCtn12 != null and condition.optValCtn12 != ""'>
+                  AND C.OPT_VAL_CTN12 = #{condition.optValCtn12}
+            </if>
+            <if test='condition.optValCtn13 != null and condition.optValCtn13 != ""'>
+                  AND C.OPT_VAL_CTN13 = #{condition.optValCtn13}
+            </if>
+            <if test='condition.optValCtn14 != null and condition.optValCtn14 != ""'>
+                  AND C.OPT_VAL_CTN14 = #{condition.optValCtn14}
+            </if>
+            <if test='condition.optValCtn15 != null and condition.optValCtn15 != ""'>
+                  AND C.OPT_VAL_CTN15 = #{condition.optValCtn15}
+            </if>
+            <if test='condition.cmnCd != null and condition.cmnCd != ""'>
+                  AND C.CMN_CD = #{condition.cmnCd}
+            </if>
+           AND C.USE_YN = 'Y'
+        ORDER BY C.SORT_ORD
+    </select>
+
+    <select id="selectCommonCode" parameterType="String" resultType="com.flare.rap.code.model.CommonCodeResponseVO">
+      SELECT CD.CMN_GR_CD
+            ,CD.CMN_CD
+            ,FN_GET_CD_NM('CMN_CD', CMN_CD, #{langCd}) AS CMN_CD_NM
+            ,CD.CMN_CD_DESC
+            ,CD.UPPR_CMN_CD
+            ,CD.SORT_ORD
+            ,CD.MSG_CTN
+            ,CD.USE_YN
+            ,CD.OPT_VAL_CTN1 ,CD.OPT_VAL_CTN2 ,CD.OPT_VAL_CTN3 ,CD.OPT_VAL_CTN4 ,CD.OPT_VAL_CTN5
+            ,CD.OPT_VAL_CTN6 ,CD.OPT_VAL_CTN7 ,CD.OPT_VAL_CTN8 ,CD.OPT_VAL_CTN9 ,CD.OPT_VAL_CTN10
+            ,CD.OPT_VAL_CTN11 ,CD.OPT_VAL_CTN12 ,CD.OPT_VAL_CTN13 ,CD.OPT_VAL_CTN14 ,CD.OPT_VAL_CTN15
+            ,CD.DATA_INS_USER_ID ,CD.DATA_INS_USER_IP ,CD.DATA_INS_DTM
+            ,CD.DATA_UPD_USER_ID ,CD.DATA_UPD_USER_IP ,CD.DATA_UPD_DTM
+      FROM TB_RPJTE_CMN_C CD
+      WHERE CD.CMN_GR_CD = #{cmnGrCd}
+        AND CD.CMN_CD = #{cmnCd}
+      ORDER BY CD.USE_YN DESC, CD.SORT_ORD
+    </select>
+
+</mapper>

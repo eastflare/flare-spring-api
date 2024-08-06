@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.flare.rap.log.repository.MenuAccessLogRepository">
+    <insert id="insertMenuAccessLog">
+        INSERT INTO TB_RPJTE_MNU_ACES_LOG_M (
+                ACES_LOG_ID
+                ,MNU_ID
+                ,CONT_DTM
+                ,CONT_USER_ID
+                ,CONT_IP
+                ,DATA_INS_USER_ID
+                ,DATA_INS_USER_IP
+                ,DATA_INS_DTM
+                ,DATA_UPD_USER_ID
+                ,DATA_UPD_USER_IP
+                ,DATA_UPD_DTM
+        )
+            SELECT SEQ_MNU_ACES_LOG_ID.NEXTVAL
+                ,NVL(( SELECT Z.MNU_ID
+                    FROM TB_RPJTE_MENU_M Z
+                    WHERE Z.MNU_URL LIKE '%' || #{mnuId}
+                    AND Z.MNU_EPS_YN = 'Y'
+                    AND ROWNUM = 1 ), #{mnuId} )
+                ,SYSDATE
+                ,#{session.userId}
+                ,#{session.userIp}
+                ,#{session.userId}
+                ,#{session.userIp}
+                ,SYSDATE
+                ,#{session.userId}
+                ,#{session.userIp}
+                ,SYSDATE
+            FROM DUAL
+    </insert>
+</mapper>

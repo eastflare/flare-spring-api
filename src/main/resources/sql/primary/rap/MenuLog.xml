@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.flare.rap.log.repository.MenuLogRepository">
+    <sql id="fromCondition">
+        FROM TB_RPJTE_MNU_ACES_LOG_M A
+        LEFT OUTER JOIN TB_RPJTE_MENU_M B
+          ON A.MNU_ID = B.MNU_ID
+        LEFT OUTER JOIN TB_RPJTE_EMP_M C
+          ON A.CONT_USER_ID = C.USER_ID
+        WHERE 1 = 1
+        <if test='condition.contDtmFr != null and condition.contDtmFr != ""'>
+            AND TO_CHAR(A.CONT_DTM, 'YYYYMMDD') <![CDATA[>=]]> #{condition.contDtmFr}
+        </if>
+        <if test='condition.contDtmTo != null and condition.contDtmTo != ""'>
+            AND TO_CHAR(A.CONT_DTM, 'YYYYMMDD') <![CDATA[<=]]> #{condition.contDtmTo}
+        </if>
+        <if test='condition.searchItem != null and condition.searchItem != ""'>
+            AND (UPPER(A.CONT_USER_ID) LIKE UPPER('%' || #{condition.searchItem} || '%')
+                 OR UPPER(C.EMP_NM) LIKE UPPER('%' || #{condition.searchItem} || '%')
+                )
+        </if>
+        ORDER BY A.DATA_INS_DTM DESC
+    </sql>
+
+    <select id="selectMenuLogListCount" resultType="int">
+        SELECT COUNT(A.ACES_LOG_ID)
+        <include refid="fromCondition"></include>
+    </select>
+
+    <select id="selectMenuLogList" resultType="com.flare.rap.log.model.MenuLogResponseVO">
+        SELECT A.ACES_LOG_ID
+              ,TO_CHAR(A.CONT_DTM, 'YYYY.MM.DD HH24:MI:SS') AS CONT_DTM
+              ,A.MNU_ID
+              ,NVL(B.MNU_NM, A.MNU_ID) AS MNU_NM
+              ,A.CONT_USER_ID
+              ,C.EMP_NM
+              ,A.CONT_IP
+              ,A.DATA_INS_USER_ID
+              ,A.DATA_INS_USER_IP
+              ,A.DATA_INS_DTM
+              ,A.DATA_UPD_USER_ID
+              ,A.DATA_UPD_USER_IP
+              ,A.DATA_UPD_DTM
+        <include refid="fromCondition"></include>
+        <if test = 'condition.pageSize != null and condition.pageSize != ""'>
+            OFFSET #{condition.start} ROWS FETCH NEXT #{condition.pageSize} ROWS ONLY
+        </if>
+    </select>
+</mapper>

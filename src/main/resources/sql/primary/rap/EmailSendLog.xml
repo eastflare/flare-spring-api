@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.flare.rap.log.repository.EmailSendLogRepository">
+    <insert id="insertEmailSendLog">
+        <![CDATA[
+        INSERT INTO TB_RPJTE_EML_SNDO_LOG_M
+            (
+                 EML_SNDO_SEQ
+                ,EML_LOG_SEQ
+                ,EML_TP_CD
+                ,EML_RCVR_LST_CTN
+                ,EML_TIT_NM
+                ,SED_EMAL
+                ,SED_DTM
+                ,EML_TRNM_STAT_CD
+                ,EML_TRNM_RLT_CTN
+                ,EML_BDY_CTN
+                ,APR_REQ_ID
+                ,OPT_VAL_NM1
+                ,OPT_VAL_NM2
+                ,OPT_VAL_NM3
+                ,OPT_VAL_NM4
+                ,OPT_VAL_NM5
+                ,DATA_INS_USER_ID
+                ,DATA_INS_USER_IP
+                ,DATA_INS_DTM
+                ,DATA_UPD_USER_ID
+                ,DATA_UPD_USER_IP
+                ,DATA_UPD_DTM
+            )
+            SELECT #{email.emlSndoSeq}
+                  ,#{email.emlLogSeq}
+                  ,#{email.emlTpCd}
+                  ,#{email.emlRcvrLstCtn}
+                  ,#{email.emlTitNm}
+                  ,#{email.sedEmal}
+                  ,SYSDATE
+                  ,#{email.emlTrnmStatCd}
+                  ,SUBSTRB(#{email.emlTrnmRltCtn},1,180)
+                  ,SUBSTRB(#{email.emlBdyCtn},1,3500)
+                  ,#{email.aprReqId}
+                  ,#{email.optValNm1}
+                  ,#{email.optValNm2}
+                  ,#{email.optValNm3}
+                  ,#{email.optValNm4}
+                  ,#{email.optValNm5}
+                  ,#{session.userId}
+                  ,#{session.userIp}
+                  ,SYSDATE
+                  ,#{session.userId}
+                  ,#{session.userIp}
+                  ,SYSDATE
+             FROM DUAL
+        ]]>
+    </insert>
+
+
+    <select id="selectEmlLogSeq" resultType="long">
+        <![CDATA[
+            SELECT SEQ_EML_LOG.NEXTVAL AS NEW_EML_LOG_SEQ
+             FROM DUAL
+        ]]>
+    </select>
+
+
+</mapper>

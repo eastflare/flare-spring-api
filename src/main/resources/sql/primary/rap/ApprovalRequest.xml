@@ -1,0 +1,639 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.flare.rap.approval.repository.ApprovalRequestRepository">
+
+    <!-- Type 2, 3 공용 : 결재요청 Master Insert -->
+    <insert id="insertApprovalRequestMaster">
+        <![CDATA[
+            INSERT INTO TB_RPJTE_APR_REQ_M
+            (
+                 APR_REQ_ID
+                ,APR_TPL_ID
+                ,EAPR_DOC_NO
+                ,APR_REQ_USER_ID
+                ,APR_PVN_DDLN_CD
+                ,DEPT_CD
+                ,DEPT_NM
+                ,ONDU_REGN_CD
+                ,ONDU_REGN_NM
+                ,APR_REQ_TIT_NM
+                ,TRNM_BDY_CTN
+                ,APR_REQ_DESC
+                ,APR_REQ_DTM
+                ,WCST_CNC_YN
+                ,APR_REQ_PROG_STAT_CD
+                ,WKT_SCRN_URL
+                ,APR_WAIT_SCRN_URL
+                ,MBIL_WKT_SCRN_URL
+                ,APR_FILE_GR_ID
+                ,REF_APR_REQ_ID
+                ,OPT_VAL_CTN1
+                ,OPT_VAL_CTN2
+                ,OPT_VAL_CTN3
+                ,OPT_VAL_CTN4
+                ,OPT_VAL_CTN5
+                ,DATA_INS_USER_ID
+                ,DATA_INS_USER_IP
+                ,DATA_INS_DTM
+                ,DATA_UPD_USER_ID
+                ,DATA_UPD_USER_IP
+                ,DATA_UPD_DTM
+            )
+            VALUES
+            (
+                 #{approvalRequestMaster.aprReqId}
+                ,#{approvalRequestMaster.aprTplId}
+                ,#{approvalRequestMaster.eaprDocNo}
+                ,#{approvalRequestMaster.aprReqUserId}
+                ,#{approvalRequestMaster.aprPvnDdlnCd}
+                ,#{approvalRequestMaster.deptCd}
+                ,#{approvalRequestMaster.deptNm}
+                ,#{approvalRequestMaster.onduRegnCd}
+                ,#{approvalRequestMaster.onduRegnNm}
+                ,#{approvalRequestMaster.aprReqTitNm}
+                ,#{approvalRequestMaster.trnmBdyCtn}
+                ,#{approvalRequestMaster.aprReqDesc}
+                ,#{approvalRequestMaster.aprReqDtm}
+                ,#{approvalRequestMaster.wcstCncYn}
+                ,'TMP'
+                ,#{approvalRequestMaster.wktScrnUrl}
+                ,#{approvalRequestMaster.aprWaitScrnUrl}
+                ,#{approvalRequestMaster.mbilWktScrnUrl}
+                ,#{approvalRequestMaster.aprFileGrId}
+                ,#{approvalRequestMaster.refAprReqId}
+                ,#{approvalRequestMaster.optValCtn1}
+                ,#{approvalRequestMaster.optValCtn2}
+                ,#{approvalRequestMaster.optValCtn3}
+                ,#{approvalRequestMaster.optValCtn4}
+                ,#{approvalRequestMaster.optValCtn5}
+                ,#{session.userId}
+                ,#{session.userIp}
+                ,SYSDATE
+                ,#{session.userId}
+                ,#{session.userIp}
+                ,SYSDATE
+            )
+        ]]>
+    </insert>
+
+    <!-- Type2, 3 용 : 통합결재에 최초결재요청(기안)후 결재요청 Master의 전자결재문서번호를 Update -->
+    <update id="updateApprovalRequestMasterToRequest">
+        UPDATE TB_RPJTE_APR_REQ_M
+        SET EAPR_DOC_NO          = #{approvalRequestMasterUpdate.eaprDocNo}
+        ,APR_REQ_DTM          = SYSDATE
+        ,APR_REQ_PROG_STAT_CD = #{approvalRequestMasterUpdate.aprReqProgStatCd}
+        ,DATA_UPD_USER_ID     = #{session.userId}
+        ,DATA_UPD_USER_IP     = #{session.userIp}
+        ,DATA_UPD_DTM         = SYSDATE
+        WHERE APR_REQ_ID = #{approvalRequestMasterUpdate.aprReqId}
+    </update>
+
+    <!-- Type2, 3 용 : 자가승인, 결재반려, 최종승인 등 결재요청Master 상태 Update -->
+    <update id="updateApprovalRequestMasterStatus">
+        <![CDATA[
+            UPDATE TB_RPJTE_APR_REQ_M
+               SET APR_REQ_PROG_STAT_CD  = #{approval.aprReqProgStatCd}
+                  ,DATA_UPD_USER_ID = #{session.userId}
+                  ,DATA_UPD_USER_IP = #{session.userIp}
+                  ,DATA_UPD_DTM     = SYSDATE
+             WHERE APR_REQ_ID = #{approval.aprReqId}
+
+        ]]>
+    </update>
+
+    <!-- Type2, 3 용 : 최초 결재요청(기안)시 통합결재 I/F를 위한 결재요청Master 및 결재라인 정보 조회 -->
+    <select id="selectApprovalRequestMasterForRequest" resultType="com.flare.rap.approval.model.ApprovalRequestMasterResponseVO">
+        <![CDATA[
+        SELECT A.APR_REQ_ID
+              ,A.APR_TPL_ID
+              ,NVL(TP.INTG_APR_TP_CD, 'TYPE2') AS INTG_APR_TP_CD
+              ,NVL(TP.EAPR_TPL_ID, FN_GET_CD_OPT_VAL('SYS_CONFIG','TYPE2_FORM_ID',1)) AS EAPR_TPL_ID
+              ,A.EAPR_DOC_NO
+              ,A.APR_REQ_USER_ID
+              ,(SELECT ZZ.EMP_NO
+                  FROM TB_RPJTE_EMP_M ZZ
+                 WHERE ZZ.USER_ID = A.APR_REQ_USER_ID) AS APR_REQ_EMP_NO
+              ,A.APR_PVN_DDLN_CD
+              ,A.DEPT_CD
+              ,FN_GET_DEPT_NM(A.DEPT_CD, #{session.langCd}) AS DEPT_NM
+              ,A.ONDU_REGN_CD
+              ,FN_GET_CD_NM( 'ONDU_REGN_CD', A.ONDU_REGN_CD, #{session.langCd} ) AS ONDU_REGN_NM
+              ,A.APR_REQ_TIT_NM
+              ,A.TRNM_BDY_CTN
+              ,A.APR_REQ_DESC
+              ,TO_CHAR(A.APR_REQ_DTM, 'YYYY-MM-DD HH24:MI:SS') AS APR_REQ_DTM
+              ,A.WCST_CNC_YN
+              ,A.APR_REQ_PROG_STAT_CD
+              ,A.WKT_SCRN_URL
+              ,A.APR_WAIT_SCRN_URL
+              ,CASE WHEN NVL(TP.INTG_APR_TP_CD, 'TYPE2') = 'TYPE3' AND A.MBIL_WKT_SCRN_URL IS NULL
+                    THEN FN_GET_CD_OPT_VAL('SYS_CONFIG','MOBILE_APPROVAL_XML_URL',1) ||  A.APR_REQ_ID
+                    ELSE A.MBIL_WKT_SCRN_URL
+                END AS MBIL_WKT_SCRN_URL
+              ,A.APR_FILE_GR_ID
+              ,A.REF_APR_REQ_ID
+              ,A.OPT_VAL_CTN1
+              ,A.OPT_VAL_CTN2
+              ,A.OPT_VAL_CTN3
+              ,A.OPT_VAL_CTN4
+              ,A.OPT_VAL_CTN5
+              ,A.DATA_INS_USER_ID
+              ,A.DATA_INS_USER_IP
+              ,TO_CHAR(A.DATA_INS_DTM, 'YYYY-MM-DD HH24:MI:SS') AS DATA_INS_DTM
+              ,A.DATA_UPD_USER_ID
+              ,A.DATA_UPD_USER_IP
+              ,TO_CHAR(A.DATA_UPD_DTM, 'YYYY-MM-DD HH24:MI:SS') AS DATA_UPD_DTM
+              ,(SELECT CASE
+                         WHEN COUNT(1) > 0 THEN
+                          '1'
+                         ELSE
+                          '0'
+                       END AS APPR_LINE_TYPE
+                  FROM TB_RPJTE_APR_LN_M ZA
+                  JOIN TB_RPJTE_APR_REQ_M ZC
+                    ON ZA.APR_REQ_ID = ZC.APR_REQ_ID
+                 WHERE ZA.APR_REQ_ID = A.APR_REQ_ID
+                   AND ZA.APR_LN_DIVS_CD = 'APPD' -- 통보처 빼고
+                   AND ZA.APR_PSG_STAT_CD = 'SAVE' -- 결재요청이 안된 상태
+                   AND ZA.PRL_YN = 'Y') AS APPR_LINE_TYPE
+              ,CASE
+                 WHEN NVL(TP.INTG_APR_TP_CD, 'TYPE2') = 'TYPE2' THEN
+                  (SELECT LISTAGG(ZA.GRNR_APR_TP_DIVS_CD, ';') WITHIN GROUP(ORDER BY ZA.APR_LN_SEQ) AS NEXT_APPR_TYPE
+                     FROM TB_RPJTE_APR_LN_M ZA
+                     JOIN TB_RPJTE_EMP_M ZB
+                       ON ZA.APR_APRV_USER_ID = ZB.USER_ID
+                     JOIN TB_RPJTE_APR_REQ_M ZC
+                       ON ZA.APR_REQ_ID = ZC.APR_REQ_ID
+                    WHERE ZA.APR_REQ_ID = A.APR_REQ_ID
+                      AND ZA.APR_LN_DIVS_CD = 'APPD' -- 통보처 빼고
+                      AND ZA.APR_PSG_STAT_CD = 'SAVE')
+                 ELSE
+                  (SELECT MIN(ZA.GRNR_APR_TP_DIVS_CD) KEEP(DENSE_RANK FIRST ORDER BY ZA.APR_LN_SEQ) AS APPR_LINE_TYPE
+                     FROM TB_RPJTE_APR_LN_M ZA
+                    WHERE ZA.APR_REQ_ID = A.APR_REQ_ID
+                      AND ZA.APR_LN_DIVS_CD = 'APPD' -- 통보처 빼고
+                      AND ZA.APR_PSG_STAT_CD = 'SAVE' -- 결재요청이 안된 상태
+                   )
+               END AS NEXT_APPR_TYPE
+              ,CASE
+                 WHEN NVL(TP.INTG_APR_TP_CD, 'TYPE2') = 'TYPE2' THEN
+                  (SELECT LISTAGG(ZB.EMP_NO, ';') WITHIN GROUP(ORDER BY ZA.APR_LN_SEQ) AS NEXT_APPROVER
+                     FROM TB_RPJTE_APR_LN_M ZA
+                     JOIN TB_RPJTE_EMP_M ZB
+                       ON ZA.APR_APRV_USER_ID = ZB.USER_ID
+                     JOIN TB_RPJTE_APR_REQ_M ZC
+                       ON ZA.APR_REQ_ID = ZC.APR_REQ_ID
+                    WHERE ZA.APR_REQ_ID = A.APR_REQ_ID
+                      AND ZA.APR_LN_DIVS_CD = 'APPD' -- 통보처 빼고
+                      AND ZA.APR_PSG_STAT_CD = 'SAVE')
+                 ELSE
+                  (SELECT MIN(ZB.EMP_NO) KEEP(DENSE_RANK FIRST ORDER BY ZA.APR_LN_SEQ) AS APPR_LINE_TYPE
+                     FROM TB_RPJTE_APR_LN_M ZA
+                     JOIN TB_RPJTE_EMP_M ZB
+                       ON ZA.APR_APRV_USER_ID = ZB.USER_ID
+                    WHERE ZA.APR_REQ_ID = A.APR_REQ_ID
+                      AND ZA.APR_LN_DIVS_CD = 'APPD' -- 통보처 빼고
+                      AND ZA.APR_PSG_STAT_CD = 'SAVE' -- 결재요청이 안된 상태
+                   )
+               END AS NEXT_APPROVER
+              ,(SELECT LISTAGG(ZB.EMP_NO, ';') WITHIN GROUP(ORDER BY ZA.APR_LN_SEQ) AS READ_USER
+                  FROM TB_RPJTE_APR_LN_M ZA
+                  JOIN TB_RPJTE_EMP_M ZB
+                    ON ZA.APR_APRV_USER_ID = ZB.USER_ID
+                  JOIN TB_RPJTE_APR_REQ_M ZC
+                    ON ZA.APR_REQ_ID = ZC.APR_REQ_ID
+                 WHERE ZA.APR_REQ_ID = A.APR_REQ_ID
+                   AND ZA.APR_LN_DIVS_CD = 'INFR' -- 통보처만
+                   AND ZA.APR_PSG_STAT_CD = 'SAVE' -- 결재요청이 안된 상태
+                ) AS READ_USER
+              ,(SELECT LISTAGG(ZA.ATCH_FILE_NM, ';') WITHIN GROUP(ORDER BY ZA.SORT_ORD) AS FILE_LINK_NAME
+                  FROM TB_RPJTE_ATCH_FILE_M ZA
+                  JOIN ( SELECT REGEXP_SUBSTR(TA.TXT, '[^,]+', 1, LEVEL) GRP_ID
+                           FROM (SELECT A.OPT_VAL_CTN1 AS TXT FROM DUAL) TA
+                        CONNECT BY LEVEL <= LENGTH(REGEXP_REPLACE(TA.TXT, '[^,]+', '')) + 1
+                        UNION ALL
+                        SELECT A.APR_FILE_GR_ID FROM DUAL
+                       ) ZC ON ZA.ATCH_FILE_GR_ID = ZC.GRP_ID
+                WHERE ZA.USE_YN = 'Y') AS FILE_LINK_NAME
+              ,(SELECT LISTAGG(REPLACE(REPLACE(FN_GET_CD_OPT_VAL('SYS_CONFIG','ATTACH_FILE_PREFIX',1),'{fileGroupId}',ZA.ATCH_FILE_GR_ID),'{fileId}',ZA.ATCH_FILE_ID)
+                                , ';') WITHIN GROUP(ORDER BY ZA.SORT_ORD) AS FILE_LINK_URL
+                  FROM TB_RPJTE_ATCH_FILE_M ZA
+                  JOIN ( SELECT REGEXP_SUBSTR(TA.TXT, '[^,]+', 1, LEVEL) GRP_ID
+                           FROM (SELECT A.OPT_VAL_CTN1 AS TXT FROM DUAL) TA
+                        CONNECT BY LEVEL <= LENGTH(REGEXP_REPLACE(TA.TXT, '[^,]+', '')) + 1
+                        UNION ALL
+                        SELECT A.APR_FILE_GR_ID FROM DUAL
+                       ) ZC  ON ZA.ATCH_FILE_GR_ID = ZC.GRP_ID
+                WHERE ZA.USE_YN = 'Y') AS FILE_LINK_URL
+              ,(SELECT LISTAGG(ZA.ATCH_FILE_SIZE, ';') WITHIN GROUP(ORDER BY ZA.SORT_ORD) AS FILE_SIZE
+                  FROM TB_RPJTE_ATCH_FILE_M ZA
+                  JOIN ( SELECT REGEXP_SUBSTR(TA.TXT, '[^,]+', 1, LEVEL) GRP_ID
+                           FROM (SELECT A.OPT_VAL_CTN1 AS TXT FROM DUAL) TA
+                        CONNECT BY LEVEL <= LENGTH(REGEXP_REPLACE(TA.TXT, '[^,]+', '')) + 1
+                        UNION ALL
+                        SELECT A.APR_FILE_GR_ID FROM DUAL
+                       ) ZC  ON ZA.ATCH_FILE_GR_ID = ZC.GRP_ID
+                WHERE ZA.USE_YN = 'Y') AS FILE_SIZE
+          FROM TB_RPJTE_APR_REQ_M A
+          LEFT OUTER JOIN TB_RPJTE_APR_TPL_M TP
+            ON A.APR_TPL_ID = TP.APR_TPL_ID
+         WHERE A.APR_REQ_ID = #{approvalRequestId.aprReqId}
+           AND A.APR_REQ_PROG_STAT_CD = 'TMP'
+         ]]>
+    </select>
+
+  <!-- Type3 용 : 통합결재 I/F를 위한 결재요청Master 및 결재라인 정보 조회 -->
+  <select id="selectApprovalInfoForIf" resultType="com.flare.rap.approval.model.ApprovalRequestMasterResponseVO">
+    <![CDATA[
+      SELECT A.APR_REQ_ID
+          ,A.APR_TPL_ID
+          ,NVL(TP.INTG_APR_TP_CD, 'TYPE2') AS INTG_APR_TP_CD
+          ,NVL(TP.EAPR_TPL_ID, FN_GET_CD_OPT_VAL('SYS_CONFIG','TYPE2_FORM_ID',1)) AS EAPR_TPL_ID
+          ,A.EAPR_DOC_NO
+          ,A.APR_REQ_USER_ID
+          ,(SELECT ZZ.EMP_NO
+            FROM TB_RPJTE_EMP_M ZZ
+           WHERE ZZ.USER_ID = A.APR_REQ_USER_ID) AS APR_REQ_EMP_NO
+          ,A.APR_PVN_DDLN_CD
+          ,A.DEPT_CD
+          ,FN_GET_DEPT_NM(A.DEPT_CD, #{session.langCd}) AS DEPT_NM
+          ,A.ONDU_REGN_CD
+          ,FN_GET_CD_NM('ONDU_REGN_CD', A.ONDU_REGN_CD, #{session.langCd}) AS ONDU_REGN_NM
+          ,A.APR_REQ_TIT_NM
+          ,A.TRNM_BDY_CTN
+          ,A.APR_REQ_DESC
+          ,TO_CHAR(A.APR_REQ_DTM, 'YYYY-MM-DD HH24:MI:SS') AS APR_REQ_DTM
+          ,A.WCST_CNC_YN
+          ,A.APR_REQ_PROG_STAT_CD
+          ,A.WKT_SCRN_URL
+          ,A.APR_WAIT_SCRN_URL
+          ,CASE WHEN NVL(TP.INTG_APR_TP_CD, 'TYPE2') = 'TYPE3' AND A.MBIL_WKT_SCRN_URL IS NULL
+            THEN FN_GET_CD_OPT_VAL('SYS_CONFIG','MOBILE_APPROVAL_XML_URL',1) ||  A.APR_REQ_ID
+            ELSE A.MBIL_WKT_SCRN_URL
+          END AS MBIL_WKT_SCRN_URL
+          ,A.APR_FILE_GR_ID
+          ,A.REF_APR_REQ_ID
+          ,A.OPT_VAL_CTN1
+          ,A.OPT_VAL_CTN2
+          ,A.OPT_VAL_CTN3
+          ,A.OPT_VAL_CTN4
+          ,A.OPT_VAL_CTN5
+          ,A.DATA_INS_USER_ID
+          ,A.DATA_INS_USER_IP
+          ,TO_CHAR(A.DATA_INS_DTM, 'YYYY-MM-DD HH24:MI:SS') AS DATA_INS_DTM
+          ,A.DATA_UPD_USER_ID
+          ,A.DATA_UPD_USER_IP
+          ,TO_CHAR(A.DATA_UPD_DTM, 'YYYY-MM-DD HH24:MI:SS') AS DATA_UPD_DTM
+          ,CAL.APR_APRV_USER_ID
+          ,CAL.EMP_NO AS APR_APRV_EMP_NO
+          ,CAL.GRNR_APR_TP_DIVS_CD
+          ,CAL.PRL_YN
+          ,CAL.APR_PSG_STAT_CD
+          ,FN_GET_CD_OPT_VAL('APR_PSG_STAT_CD', CAL.APR_PSG_STAT_CD, 1 ) AS  APPR_STATUS
+          ,CAL.APR_APRV_OPIN_UTF8_CTN
+          ,CASE WHEN NVL(CAL.APR_LN_SEQ,99999) <> NVL(NAL.APR_LN_SEQ,99999)
+            THEN NAL.APR_APRV_USER_ID
+            ELSE NULL
+          END AS NEXT_APPROVER_USER_ID
+          ,CASE WHEN NVL(CAL.APR_LN_SEQ,99999) <> NVL(NAL.APR_LN_SEQ,99999)
+            THEN NAL.EMP_NO
+            ELSE NULL
+          END AS NEXT_APPROVER
+          ,CASE WHEN NVL(CAL.APR_LN_SEQ,99999) <> NVL(NAL.APR_LN_SEQ,99999)
+            THEN NAL.GRNR_APR_TP_DIVS_CD
+            ELSE NULL
+          END AS NEXT_APPR_TYPE
+          ,CASE WHEN NVL(CAL.APR_LN_SEQ,99999) <> NVL(NAL.APR_LN_SEQ,99999)
+            THEN NAL.PRL_YN
+            ELSE NULL
+          END AS NEXT_PRL_YN
+        FROM TB_RPJTE_APR_REQ_M A
+        LEFT OUTER JOIN TB_RPJTE_APR_TPL_M TP
+        ON A.APR_TPL_ID = TP.APR_TPL_ID
+        LEFT OUTER JOIN (
+                 SELECT AL.APR_REQ_ID
+                    ,AL.APR_LN_SEQ
+                    ,AL.APR_LN_SNB
+                    ,AL.GRNR_APR_TP_DIVS_CD
+                    ,AL.APR_FFIL_TP_CD
+                    ,AL.PRL_YN
+                    ,AL.APR_APRV_USER_ID
+                    ,AL.APR_PSG_STAT_CD
+                    ,AL.APR_APRV_DTM
+                    ,AL.APR_APRV_OPIN_UTF8_CTN
+                    ,AL.APR_DLGT_USER_ID
+                    ,AL.APR_LN_DIVS_CD
+                    ,EM.EMP_NO
+                 FROM TB_RPJTE_APR_LN_M AL
+                 JOIN TB_RPJTE_EMP_M EM
+                   ON AL.APR_APRV_USER_ID = EM.USER_ID
+                WHERE AL.APR_REQ_ID = #{approval.aprReqId}
+                  AND AL.APR_LN_SEQ = #{approval.aprLnSeq}) CAL
+        ON A.APR_REQ_ID = CAL.APR_REQ_ID
+        LEFT OUTER JOIN (SELECT AL.APR_REQ_ID
+                   ,AL.APR_LN_SEQ
+                   ,AL.APR_LN_SNB
+                   ,AL.GRNR_APR_TP_DIVS_CD
+                   ,AL.APR_FFIL_TP_CD
+                   ,AL.PRL_YN
+                   ,AL.APR_APRV_USER_ID
+                   ,AL.APR_PSG_STAT_CD
+                   ,AL.APR_APRV_DTM
+                   ,AL.APR_APRV_OPIN_UTF8_CTN
+                   ,AL.APR_DLGT_USER_ID
+                   ,AL.APR_LN_DIVS_CD
+                   ,EM.EMP_NO
+                 FROM TB_RPJTE_APR_LN_M AL
+                 JOIN TB_RPJTE_EMP_M EM
+                   ON AL.APR_APRV_USER_ID = EM.USER_ID
+                WHERE AL.APR_REQ_ID = #{approval.aprReqId}
+                  AND AL.APR_LN_SEQ =
+                    (SELECT MIN(APR_LN_SEQ)
+                     FROM TB_RPJTE_APR_LN_M
+                    WHERE APR_LN_DIVS_CD = 'APPD'
+                      AND APR_APRV_DTM IS NULL
+                      AND APR_REQ_ID = #{approval.aprReqId})) NAL
+        ON A.APR_REQ_ID = NAL.APR_REQ_ID
+       WHERE A.APR_REQ_ID = #{approval.aprReqId}
+     ]]>
+  </select>
+
+  <!-- Type3 용 : 자가승인이 가능한 결재건인지 확인 -->
+  <select id="selectSelfApprovalAvailable" resultType="string">
+    <![CDATA[
+      SELECT CASE
+           WHEN RM.APR_REQ_PROG_STAT_CD = 'REQ' AND
+              RM.APR_REQ_USER_ID = AL.APR_APRV_USER_ID THEN
+            'Y'
+           ELSE
+            'N'
+           END AS SELF_YN
+        FROM TB_RPJTE_APR_REQ_M RM
+        LEFT JOIN (SELECT APR_REQ_ID
+                 ,APR_APRV_USER_ID
+               FROM TB_RPJTE_APR_LN_M
+              WHERE APR_LN_DIVS_CD = 'APPD'
+              AND APR_LN_SEQ = 1) AL
+        ON RM.APR_REQ_ID = AL.APR_REQ_ID
+       WHERE RM.APR_REQ_ID = #{aprReqId}
+    ]]>
+  </select>
+
+  <!-- Type3 용 : 결재라인중 반려가 있는지 확인 -->
+  <select id="selectGetApprovalRequestMasterId" resultType="string">
+    <![CDATA[
+      SELECT FN_GET_CD_OPT_VAL('SYS_CONFIG', 'APR_REQ_ID_PREFIX', 1) ||
+           TO_CHAR(SYSDATE, 'YYYYMMDD') || '-' ||
+           LPAD(SEQ_APR_REQ_ID.NEXTVAL, 5, '0') AS APR_REQ_ID
+        FROM DUAL
+    ]]>
+  </select>
+
+  <!-- Type2 용 : 결재라인중 취소가 있는지 확인 : 내용확인 -->
+  <select id="selectCheckCancelCount" resultType="int">
+    <![CDATA[
+      SELECT COUNT(1) AS CCL_CNT
+      FROM   TB_RPJTE_APR_LN_M AL
+      WHERE  AL.APR_REQ_ID = #{approval.aprReqId}
+      AND    AL.APR_LN_DIVS_CD = 'APPD'
+      AND    AL.APR_LN_SEQ = (SELECT MAX(APR_LN_SEQ)
+               FROM   TB_RPJTE_APR_LN_M
+               WHERE  APR_LN_DIVS_CD = 'APPD'
+               AND    APR_PSG_STAT_CD IN ('CANCEL')
+               AND    APR_REQ_ID = #{approval.aprReqId})
+
+    ]]>
+  </select>
+
+  <!-- Type2, 3 공용 : 결재요청 Master 정보 조회 -->
+  <select id="selectApprovalRequestMaster" resultType="com.flare.rap.approval.model.ApprovalRequestMasterResponseVO">
+    <![CDATA[
+      SELECT A.APR_REQ_ID
+          ,A.APR_TPL_ID
+          ,NVL(TP.INTG_APR_TP_CD, 'TYPE2') AS INTG_APR_TP_CD
+          ,NVL(TP.EAPR_TPL_ID, FN_GET_CD_OPT_VAL('SYS_CONFIG','TYPE2_FORM_ID',1)) AS EAPR_TPL_ID
+          ,A.EAPR_DOC_NO
+          ,A.APR_REQ_USER_ID
+          ,(SELECT ZZ.EMP_NO
+            FROM TB_RPJTE_EMP_M ZZ
+           WHERE ZZ.USER_ID = A.APR_REQ_USER_ID) AS APR_REQ_EMP_NO
+          ,FN_GET_USER_NM(A.APR_REQ_USER_ID, #{session.langCd}, 'ID') AS APR_REQ_USER_NM
+          ,FN_GET_USER_DEPT_NM(A.APR_REQ_USER_ID, #{session.langCd}, 'ID') AS  APR_REQ_USER_DEPT_NM
+          ,FN_GET_USER_JIKWI_NM(A.APR_REQ_USER_ID, #{session.langCd}, 'ID') AS APR_REQ_USER_JIKWI_NM
+          ,A.APR_REQ_USER_ID || '@lgensol.com' AS APR_REQ_USER_EMAIL
+          ,TO_CHAR(A.APR_REQ_DTM, 'YYYYMMDDHH24MISS') AS APR_REQ_DTM_MOBILE
+          ,A.APR_PVN_DDLN_CD
+          ,A.DEPT_CD
+          ,FN_GET_DEPT_NM(A.DEPT_CD, #{session.langCd}) AS DEPT_NM
+          ,A.ONDU_REGN_CD
+          ,FN_GET_CD_NM('ONDU_REGN_CD', A.ONDU_REGN_CD, #{session.langCd}) AS ONDU_REGN_NM
+          ,A.APR_REQ_TIT_NM
+          ,A.TRNM_BDY_CTN
+          ,A.APR_REQ_DESC
+          ,TO_CHAR(A.APR_REQ_DTM, 'YYYY-MM-DD HH24:MI:SS') AS APR_REQ_DTM
+          ,A.WCST_CNC_YN
+          ,A.APR_REQ_PROG_STAT_CD
+          ,A.WKT_SCRN_URL
+          ,A.APR_WAIT_SCRN_URL
+          ,A.MBIL_WKT_SCRN_URL
+          ,A.APR_FILE_GR_ID
+          ,A.REF_APR_REQ_ID
+          ,A.OPT_VAL_CTN1
+          ,A.OPT_VAL_CTN2
+          ,A.OPT_VAL_CTN3
+          ,A.OPT_VAL_CTN4
+          ,A.OPT_VAL_CTN5
+          ,A.DATA_INS_USER_ID
+          ,A.DATA_INS_USER_IP
+          ,TO_CHAR(A.DATA_INS_DTM, 'YYYY-MM-DD HH24:MI:SS') AS DATA_INS_DTM
+          ,A.DATA_UPD_USER_ID
+          ,A.DATA_UPD_USER_IP
+          ,TO_CHAR(A.DATA_UPD_DTM, 'YYYY-MM-DD HH24:MI:SS') AS DATA_UPD_DTM
+        FROM TB_RPJTE_APR_REQ_M A
+        LEFT OUTER JOIN TB_RPJTE_APR_TPL_M TP
+        ON A.APR_TPL_ID = TP.APR_TPL_ID
+       WHERE A.APR_REQ_ID = #{approvalRequestId.aprReqId}
+     ]]>
+  </select>
+
+  <!-- Type 2, 3 공용 : 결재요청 Master Update, 모든 컬럼 , 주의  : 값이 셋팅 안되면 null update 됨. : 내용확인 -->
+  <update id="updateApprovalRequestMaster">
+    <![CDATA[
+      UPDATE TB_RPJTE_APR_REQ_M
+         SET APR_TPL_ID = #{approvalRequestMaster.aprTplId}
+          ,EAPR_DOC_NO  = #{approvalRequestMaster.eaprDocNo}
+          ,APR_REQ_USER_ID  = #{approvalRequestMaster.aprReqUserId}
+          ,APR_PVN_DDLN_CD  = #{approvalRequestMaster.aprPvnDdlnCd}
+          ,DEPT_CD  = #{approvalRequestMaster.deptCd}
+          ,DEPT_NM  = #{approvalRequestMaster.deptNm}
+          ,ONDU_REGN_CD = #{approvalRequestMaster.onduRegnCd}
+          ,ONDU_REGN_NM = #{approvalRequestMaster.onduRegnNm}
+          ,APR_REQ_TIT_NM = #{approvalRequestMaster.aprReqTitNm}
+          ,TRNM_BDY_CTN = #{approvalRequestMaster.trnmBdyCtn}
+          ,APR_REQ_DESC = #{approvalRequestMaster.aprReqDesc}
+          ,APR_REQ_DTM  = #{approvalRequestMaster.aprReqDtm}
+          ,WCST_CNC_YN  = #{approvalRequestMaster.wcstCncYn}
+          ,APR_REQ_PROG_STAT_CD = #{approvalRequestMaster.aprReqProgStatCd}
+          ,WKT_SCRN_URL = #{approvalRequestMaster.wktScrnUrl}
+          ,APR_WAIT_SCRN_URL  = #{approvalRequestMaster.aprWaitScrnUrl}
+          ,MBIL_WKT_SCRN_URL  = #{approvalRequestMaster.mbilWktScrnUrl}
+          ,APR_FILE_GR_ID = #{approvalRequestMaster.aprFileGrId}
+          ,REF_APR_REQ_ID = #{approvalRequestMaster.refAprReqId}
+          ,OPT_VAL_CTN1 = #{approvalRequestMaster.optValCtn1}
+          ,OPT_VAL_CTN2 = #{approvalRequestMaster.optValCtn2}
+          ,OPT_VAL_CTN3 = #{approvalRequestMaster.optValCtn3}
+          ,OPT_VAL_CTN4 = #{approvalRequestMaster.optValCtn4}
+          ,OPT_VAL_CTN5 = #{approvalRequestMaster.optValCtn5}
+          ,DATA_UPD_USER_ID = #{session.userId}
+          ,DATA_UPD_USER_IP = #{session.userIp}
+          ,DATA_UPD_DTM = SYSDATE
+       WHERE APR_REQ_ID = #{approvalRequestMaster.aprReqId}
+    ]]>
+  </update>
+
+  <!-- Type 2, 3 공용 : 결재요청 Master Update, 값이 전달된 컬럼만, 값이 전달이 안되면(null) 이면 유지 : 내용확인-->
+  <update id="updateApprovalRequestMasterExcludeNullParamValue">
+    <![CDATA[
+      UPDATE TB_RPJTE_APR_REQ_M
+         SET APR_TPL_ID = NVL(#{approvalRequestMaster.aprTplId}, APR_TPL_ID)
+          ,EAPR_DOC_NO  = NVL(#{approvalRequestMaster.eaprDocNo}, EAPR_DOC_NO)
+          ,APR_REQ_USER_ID  = NVL(#{approvalRequestMaster.aprReqUserId}, APR_REQ_USER_ID)
+          ,APR_PVN_DDLN_CD  = NVL(#{approvalRequestMaster.aprPvnDdlnCd}, APR_PVN_DDLN_CD)
+          ,DEPT_CD  = NVL(#{approvalRequestMaster.deptCd}, DEPT_CD)
+          ,DEPT_NM  = NVL(#{approvalRequestMaster.deptNm}, DEPT_NM)
+          ,ONDU_REGN_CD = NVL(#{approvalRequestMaster.onduRegnCd}, ONDU_REGN_CD)
+          ,ONDU_REGN_NM = NVL(#{approvalRequestMaster.onduRegnNm}, ONDU_REGN_NM)
+          ,APR_REQ_TIT_NM = NVL(#{approvalRequestMaster.aprReqTitNm}, APR_REQ_TIT_NM)
+    ]]>
+    <if test='approvalRequestMaster.trnmBdyCtn != null and approvalRequestMaster.trnmBdyCtn != ""'>
+          ,TRNM_BDY_CTN = #{approvalRequestMaster.trnmBdyCtn}
+    </if>
+    <![CDATA[
+          ,APR_REQ_DESC = NVL(#{approvalRequestMaster.aprReqDesc}, APR_REQ_DESC)
+          ,APR_REQ_DTM  = NVL(#{approvalRequestMaster.aprReqDtm}, APR_REQ_DTM)
+          ,WCST_CNC_YN  = NVL(#{approvalRequestMaster.wcstCncYn}, WCST_CNC_YN)
+          ,APR_REQ_PROG_STAT_CD = NVL(#{approvalRequestMaster.aprReqProgStatCd}, APR_REQ_PROG_STAT_CD)
+          ,WKT_SCRN_URL = NVL(#{approvalRequestMaster.wktScrnUrl}, WKT_SCRN_URL)
+          ,APR_WAIT_SCRN_URL  = NVL(#{approvalRequestMaster.aprWaitScrnUrl}, APR_WAIT_SCRN_URL)
+          ,MBIL_WKT_SCRN_URL  = NVL(#{approvalRequestMaster.mbilWktScrnUrl}, MBIL_WKT_SCRN_URL)
+          ,APR_FILE_GR_ID = NVL(#{approvalRequestMaster.aprFileGrId}, APR_FILE_GR_ID)
+          ,REF_APR_REQ_ID = NVL(#{approvalRequestMaster.refAprReqId}, REF_APR_REQ_ID)
+          ,OPT_VAL_CTN1 = NVL(#{approvalRequestMaster.optValCtn1}, OPT_VAL_CTN1)
+          ,OPT_VAL_CTN2 = NVL(#{approvalRequestMaster.optValCtn2}, OPT_VAL_CTN2)
+          ,OPT_VAL_CTN3 = NVL(#{approvalRequestMaster.optValCtn3}, OPT_VAL_CTN3)
+          ,OPT_VAL_CTN4 = NVL(#{approvalRequestMaster.optValCtn4}, OPT_VAL_CTN4)
+          ,OPT_VAL_CTN5 = NVL(#{approvalRequestMaster.optValCtn5}, OPT_VAL_CTN5)
+          ,DATA_UPD_USER_ID = #{session.userId}
+          ,DATA_UPD_USER_IP = #{session.userIp}
+          ,DATA_UPD_DTM = SYSDATE
+       WHERE APR_REQ_ID = #{approvalRequestMaster.aprReqId}
+    ]]>
+  </update>
+
+  <!-- Type 3  : 모바일용 첨부파일 -->
+    <select id="selectApprovalAprFileForMobile" resultType="com.flare.rap.approval.model.ApprovalMobileFilesVO">
+        <![CDATA[
+            SELECT ZA.ATCH_FILE_ID AS FILE_ID
+                  ,ZA.ATCH_FILE_NM AS FILE_NAME
+                  ,ZA.ATCH_FILE_SIZE AS FILE_SIZE
+                  ,REPLACE(REPLACE(FN_GET_CD_OPT_VAL('SYS_CONFIG', 'ATTACH_FILE_PREFIX',
+                                                     2), '{fileGroupId}',
+                                   ZA.ATCH_FILE_GR_ID), '{fileId}', ZA.ATCH_FILE_ID) AS FILE_LINK_URL
+              FROM TB_RPJTE_ATCH_FILE_M ZA
+              JOIN (
+                    SELECT 1 AS ORD_NO
+                         , A.APR_FILE_GR_ID AS GRP_ID
+                      FROM TB_RPJTE_APR_REQ_M A
+                     WHERE A.APR_REQ_ID = #{approval.aprReqId}
+                    UNION ALL
+                    SELECT ROWNUM + 1 AS ORD_NO
+                         , REGEXP_SUBSTR(TA.TXT, '[^,]+', 1, LEVEL) GRP_ID
+                      FROM (SELECT A.OPT_VAL_CTN1 AS TXT
+                              FROM TB_RPJTE_APR_REQ_M A
+                             WHERE A.APR_REQ_ID = #{approval.aprReqId}) TA
+                    CONNECT BY LEVEL <= LENGTH(REGEXP_REPLACE(TA.TXT, '[^,]+', '')) + 1
+                     ) ZC
+                ON ZA.ATCH_FILE_GR_ID = ZC.GRP_ID
+             WHERE ZA.USE_YN = 'Y'
+             ORDER BY ZC.ORD_NO
+         ]]>
+    </select>
+
+    <!-- Type3 용 : 결재취소가 가능한 UserId 인지 확인 -->
+    <select id="selectCancelAvailableCheck" resultType="string">
+        <![CDATA[
+            SELECT DECODE(NVL(MAX(RM.APR_REQ_PROG_STAT_CD), 'NULL'), 'REQ', 'Y', 'N') AS CANCEL_FLAG
+              FROM TB_RPJTE_APR_REQ_M RM
+             WHERE RM.APR_REQ_ID = #{aprReqId}
+               AND RM.APR_REQ_USER_ID = #{session.userId}
+        ]]>
+    </select>
+
+    <!-- Type 2,3 공용 : 결재라인을 차수로 조회 -->
+    <select id="selectApprovalLineMasterWithSeq" resultType="com.flare.rap.approval.model.ApprovalLineRequestVO">
+        <![CDATA[
+        SELECT AL.APR_REQ_ID
+             ,AR.EAPR_DOC_NO
+             ,AL.APR_LN_SEQ
+             ,AL.APR_LN_SNB
+             ,AL.GRNR_APR_TP_DIVS_CD
+             ,AL.APR_FFIL_TP_CD
+             ,AL.PRL_YN
+             ,AL.APR_APRV_USER_ID
+             ,AL.APR_PSG_STAT_CD
+             ,AL.APR_APRV_DTM
+             ,AL.APR_APRV_OPIN_UTF8_CTN
+             ,AL.APR_DLGT_USER_ID
+             ,AL.APR_DLGT_NO
+             ,AL.APR_LN_DIVS_CD
+             ,AL.EML_SNDO_SEQ
+        FROM TB_RPJTE_APR_REQ_M AR
+        JOIN TB_RPJTE_APR_LN_M AL
+        ON AR.APR_REQ_ID = AL.APR_REQ_ID
+        WHERE AR.APR_REQ_ID=#{approval.aprReqId}
+        AND AL.APR_LN_SEQ=#{approval.aprLnSeq}
+        ]]>
+    </select>
+
+    <!-- Type 3 전용 : 승인자 ID (로그인 사용자)로 결재하려는 결재라인 정보 조회 -->
+    <select id="selectWaitApprovalLineByUserId" resultType="com.flare.rap.approval.model.ApprovalLineRequestVO">
+        <![CDATA[
+        SELECT AL.APR_REQ_ID
+             ,AR.EAPR_DOC_NO
+             ,AL.APR_LN_SEQ
+             ,AL.APR_LN_SNB
+             ,AL.GRNR_APR_TP_DIVS_CD
+             ,AL.APR_FFIL_TP_CD
+             ,AL.PRL_YN
+             ,AL.APR_APRV_USER_ID
+             ,AL.APR_PSG_STAT_CD
+             ,AL.APR_APRV_DTM
+             ,AL.APR_APRV_OPIN_UTF8_CTN
+             ,AL.APR_DLGT_USER_ID
+             ,AL.APR_DLGT_NO
+             ,AL.APR_LN_DIVS_CD
+             ,AL.EML_SNDO_SEQ
+        FROM TB_RPJTE_APR_REQ_M AR
+        JOIN TB_RPJTE_APR_LN_M AL ON AR.APR_REQ_ID = AL.APR_REQ_ID
+       WHERE AR.APR_REQ_ID = #{approval.aprReqId}
+         AND AL.APR_LN_SEQ = ( SELECT MIN(ZZ.APR_LN_SEQ)
+                                 FROM TB_RPJTE_APR_LN_M ZZ
+                                WHERE ZZ.APR_REQ_ID = #{approval.aprReqId}
+                                  AND ZZ.APR_LN_DIVS_CD = 'APPD'
+                                  AND ZZ.APR_PSG_STAT_CD = 'WAIT'
+                                  AND ZZ.APR_APRV_USER_ID = #{session.userId} )
+               AND APR_PSG_STAT_CD = 'WAIT'
+        ]]>
+    </select>
+
+    <!-- Type 2,3 공용 : 결재 마스터 삭제 : 내용 확인-->
+    <delete id="deleteApprovalMaster">
+        DELETE 
+          FROM TB_RPJTE_APR_REQ_M
+        WHERE APR_REQ_ID = #{aprReqId}
+    </delete>
+
+</mapper>
