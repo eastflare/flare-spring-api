@@ -1,0 +1,37 @@
+CREATE OR REPLACE FUNCTION FN_GET_CD_NM( P_GR_CD IN VARCHAR, P_CD IN VARCHAR, P_LANG_CD IN VARCHAR )
+RETURNS VARCHAR
+as $$
+/*******************************************************************************
+ * Project      : GLWC
+ * Module       : CMN
+ * Program Name : FN_GET_CD_NM
+ * Description  : 공통코드명 조회
+ * Program History
+ *------------------------------------------------------------------------------
+ *  Date    		In Charge          Description
+ *------------------------------------------------------------------------------
+ *  2023-04-30                         최초작성
+ *  2023-05-12  메시지를 MSG_CTN 코드로 Join하도록 수정, 메시지 코드가 없을 경우 cmn_nm 을 조회하도록 수정
+ *******************************************************************************/
+DECLARE
+    d_return     VARCHAR(2000);
+    v_lang_cd    VARCHAR(10);
+
+BEGIN
+
+    d_return := NULL;
+    v_lang_cd := COALESCE(P_LANG_CD,'ko');
+
+   SELECT COALESCE(M.MSG_TXT_CTN, C.CMN_CD_NM)
+     INTO d_return
+     FROM TB_RPJTE_CMN_GR_C   G
+          INNER JOIN TB_RPJTE_CMN_C C ON ( G.CMN_GR_CD   = C.CMN_GR_CD)
+          LEFT JOIN TB_RPJTE_MSG_M M ON ( C.MSG_CTN = M.MSG_CTN AND M.LANG_CD = v_lang_cd)
+    WHERE G.CMN_GR_CD  = P_GR_CD
+      AND C.CMN_CD     = P_CD
+    ;
+
+    RETURN d_return;
+
+END;
+$$ language plpgsql;

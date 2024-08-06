@@ -1,0 +1,53 @@
+CREATE OR REPLACE FUNCTION FN_GET_JIKWI_NM (P_JPS_CD IN VARCHAR, P_JTI_CD IN VARCHAR, P_LANG_CD IN VARCHAR )
+RETURNS VARCHAR
+as $$
+/*******************************************************************************
+ * Project      : GLWC
+ * Module       : CMN
+ * Program Name : FN_GET_JIKWI_NM
+ * Description  : 직위코드 없으면 직책명  직위코드 있으면 직위명  RETURN
+                  P_JPS_CD : 직책코드     P_JTI_CD : 직위코드
+ * Program History
+ *------------------------------------------------------------------------------
+ *  Date    		In Charge   Description
+ *------------------------------------------------------------------------------
+ *  2023-04-30      	                     최초작성
+*******************************************************************************/
+DECLARE
+    d_return     VARCHAR(1000);
+    V_LANG_CD    VARCHAR(10) := COALESCE(P_LANG_CD,'ko');
+
+BEGIN
+    d_return := NULL;
+    BEGIN
+         IF (P_JTI_CD is NULL OR P_JTI_CD = ''  )  THEN  -- 직위코드가 없는경우
+
+         SELECT M.MSG_TXT_CTN
+           INTO d_return
+           FROM TB_RPJTE_CMN_GR_C   G
+                INNER JOIN TB_RPJTE_CMN_C C ON ( G.CMN_GR_CD   = C.CMN_GR_CD)
+                INNER JOIN TB_RPJTE_MSG_M M ON ( C.MSG_CTN = M.MSG_CTN)
+          WHERE G.CMN_GR_CD  = 'JPS_CD'
+            AND C.CMN_CD     = P_JPS_CD
+            AND M.LANG_CD    = V_LANG_CD ;
+
+          ELSE
+
+         SELECT M.MSG_TXT_CTN
+           INTO d_return
+           FROM TB_RPJTE_CMN_GR_C   G
+                INNER JOIN TB_RPJTE_CMN_C C ON ( G.CMN_GR_CD   = C.CMN_GR_CD)
+                INNER JOIN TB_RPJTE_MSG_M M ON ( C.MSG_CTN = M.MSG_CTN)
+          WHERE G.CMN_GR_CD  = 'JTI_CD'
+            AND C.CMN_CD     = P_JTI_CD
+            AND M.LANG_CD    = V_LANG_CD;
+
+          END IF;
+
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            NULL;
+    END;
+    RETURN d_return;
+END;
+$$ language plpgsql;

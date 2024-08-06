@@ -1,0 +1,34 @@
+CREATE OR REPLACE FUNCTION FN_GET_MESSAGE ( P_MSG_CTN IN VARCHAR, P_LANG_CD IN VARCHAR )
+RETURNS VARCHAR
+as $$
+/*******************************************************************************
+ * Project      : GLWC
+ * Module       : CMN
+ * Program Name : FN_GET_MESSAGE
+ * Description  : 다국어 메시지 조회
+ * Program History
+ *------------------------------------------------------------------------------
+ *  Date        In Charge          Description
+ *------------------------------------------------------------------------------
+ *  2023-04-30                         최초작성
+ *******************************************************************************/
+DECLARE
+    d_return     VARCHAR(2000);
+    v_lang_cd    VARCHAR(10);
+
+BEGIN
+
+    d_return := NULL;
+    v_lang_cd := COALESCE(P_LANG_CD,'ko');
+
+   SELECT COALESCE(A.MSG_TXT_CTN, P_MSG_CTN)
+     INTO d_return
+     FROM TB_RPJTE_MSG_M A
+    WHERE A.MSG_CTN  = P_MSG_CTN
+      AND A.LANG_CD  = v_lang_cd
+    ;
+
+    RETURN d_return;
+
+END;
+$$ language plpgsql;

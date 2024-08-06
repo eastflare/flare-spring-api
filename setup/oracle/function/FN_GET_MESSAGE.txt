@@ -1,0 +1,33 @@
+CREATE OR REPLACE FUNCTION "FN_GET_MESSAGE" ( P_MSG_CTN IN VARCHAR2, P_LANG_CD IN VARCHAR2 )
+RETURN VARCHAR2
+AS
+/*******************************************************************************
+ * Project      : GLWC
+ * Module       : CMN
+ * Program Name : FN_GET_MESSAGE
+ * Description  : 다국어 메시지 조회
+ * Program History
+ *------------------------------------------------------------------------------
+ *  Date        In Charge          Description
+ *------------------------------------------------------------------------------
+ *  2023-04-30                         최초작성
+ *******************************************************************************/
+
+    d_return     VARCHAR(2000);
+    v_lang_cd    VARCHAR(10);
+
+BEGIN
+
+    d_return := NULL;
+    v_lang_cd := NVL(P_LANG_CD,'ko');
+
+   SELECT nvl(A.MSG_TXT_CTN, P_MSG_CTN)
+     INTO d_return
+     FROM TB_RPJTE_MSG_M A
+    WHERE A.MSG_CTN  = P_MSG_CTN
+      AND A.LANG_CD  = v_lang_cd
+    ;
+
+    RETURN d_return;
+
+END;

@@ -1,0 +1,115 @@
+CREATE OR REPLACE FUNCTION "FN_GET_LOCAL_TIME_S" (P_TIMEZNE VARCHAR2, P_DATETIME IN VARCHAR2, P_FORMAT IN VARCHAR2 )
+RETURN VARCHAR2
+IS
+/*******************************************************************************
+ * Project      : GLWC
+ * Module       : CMN
+ * Program Name : FN_GET_LOCAL_TIME_S
+ * Description  : datetime - timezone 으로 return
+ * Paramata     :
+ * Program History
+ *------------------------------------------------------------------------------
+ *  Date    		In Charge          Description
+ *------------------------------------------------------------------------------
+ *  2023-05-15  최초작성
+  *******************************************************************************/
+
+    d_return     VARCHAR(100);
+    v_timezone   VARCHAR(100);
+    v_optval4    VARCHAR(100);
+    v_optval5    VARCHAR(100);
+    v_optval6    VARCHAR(100);
+    v_optval7    VARCHAR(100);
+    v_optval8    VARCHAR(100);
+    v_optval9    VARCHAR(100);
+    v_optval10   VARCHAR(100);
+    v_sSTime     VARCHAR(100); -- 시작 서머타임
+    v_eSTime     VARCHAR(100); -- 종료 서머타임
+    v_Year       VARCHAR(4);
+    err_code   VARCHAR (1024);
+    err_msg    VARCHAR (1024);
+
+BEGIN
+
+    d_return := NULL;
+
+    BEGIN
+        IF P_DATETIME IS NULL THEN
+           RETURN NULL;
+        END IF;
+
+        IF P_TIMEZNE IS NULL  THEN
+           v_timezone := 'GMT000000009';   -- 없으면 한국값으로
+        else
+            v_timezone := P_TIMEZNE;
+        END IF;
+        /* 타임존 별 서머타임 정보 가져오기 */
+
+        SELECT C.OPT_VAL_CTN4
+          ,C.OPT_VAL_CTN5
+        ,C.OPT_VAL_CTN6
+        ,C.OPT_VAL_CTN7
+        ,C.OPT_VAL_CTN8
+        ,C.OPT_VAL_CTN9
+        ,C.OPT_VAL_CTN10
+          INTO v_optval4
+          ,v_optval5
+          ,v_optval6
+          ,v_optval7
+          ,v_optval8
+          ,v_optval9
+          ,v_optval10
+          FROM TB_RPJTE_CMN_GR_C G
+               INNER JOIN TB_RPJTE_CMN_C C ON ( G.CMN_GR_CD   = C.CMN_GR_CD)
+         WHERE G.CMN_GR_CD='GPT_TMZ_CD'
+           AND CMN_CD = v_timezone  ;
+
+    SELECT TO_CHAR(TO_DATE(P_DATETIME, 'YYYYMMDDHH24MISS')
+                +  TO_NUMBER(OPT_VAL_CTN1)/24 * ( CASE WHEN TO_NUMBER(OPT_VAL_CTN1) <  10  THEN 1 ELSE -1 END) , P_FORMAT )
+          INTO d_return
+          FROM TB_RPJTE_CMN_GR_C   G
+               INNER JOIN TB_RPJTE_CMN_C C ON ( G.CMN_GR_CD   = C.CMN_GR_CD)
+         WHERE G.CMN_GR_CD='GPT_TMZ_CD'
+           AND CMN_CD = v_timezone  ;
+
+            IF v_optval4 IS NOT NULL AND
+           v_optval5 IS NOT NULL AND
+         v_optval6 IS NOT NULL AND
+         v_optval7 IS NOT NULL AND
+               v_optval8 IS NOT NULL AND
+         v_optval9 IS NOT NULL AND
+         v_optval10 IS NOT NULL THEN
+
+            v_Year := SUBSTR(d_return,1,4) ;
+
+            /*시작일자 지정 월의 지정주차 일요일 */
+            SELECT TO_CHAR(NEXT_DAY(TRUNC(TO_DATE(v_Year||LPAD(v_optval4,2,'0')||'01' ,'YYYYMMDD')-1),1)+(TO_NUMBER(v_optval6)-1)*7,'YYYYMMDD')||REPLACE (v_optval7,':','') || '00'
+              INTO v_sSTime
+              FROM DUAL ;
+
+            /*종료일자 지정월의 지정주차 일요일*/
+            SELECT TO_CHAR(NEXT_DAY(TRUNC(TO_DATE(v_Year||LPAD(v_optval8,2,'0')||'01' ,'YYYYMMDD')-1),1)+(TO_NUMBER(v_optval9)-1)*7,'YYYYMMDD')||REPLACE (v_optval10,':','') || '00'
+              INTO v_eSTime
+              FROM DUAL ;
+
+            IF d_return >=  v_sSTime AND  d_return < = v_eSTime  THEN  -- 타임존 적용
+                SELECT TO_CHAR(TO_DATE(d_return,'YYYYMMDDHH24MISS' ) + TO_NUMBER('1')/24  , P_FORMAT )
+                  INTO d_return
+                  FROM DUAL ;
+            END IF;
+
+        END IF ;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+          /***** 로그 확인용..
+         에러 메시지 RETURN 시 app에서 오류 날 수 있음.
+        ( err_code := SQLCODE;
+            err_msg := SUBSTR (SQLERRM, 1, 200);
+            d_return := err_code || SUBSTR (SQLERRM, 1, 200);
+          ******/
+          d_return := TO_CHAR ( SYSDATE - 100,P_FORMAT );  -- 오류시 에러 일으키지 말고 100년전으로 회귀
+        END;
+    RETURN d_return;
+
+END;

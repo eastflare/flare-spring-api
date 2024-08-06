@@ -1,0 +1,64 @@
+CREATE OR REPLACE FUNCTION FN_GET_CD_OPT_VAL( P_GR_CD IN VARCHAR, P_CD IN VARCHAR, P_OPT_NUM IN NUMERIC  )
+RETURNS VARCHAR
+as $$
+/*******************************************************************************
+ * Project      : GLWC
+ * Module       : CMN
+ * Program Name : FN_GET_CD_OPT_VAL
+ * Description  : 공통코드 옵션값 조회
+ * Program History
+ *------------------------------------------------------------------------------
+ *  Date        In Charge          Description
+ *------------------------------------------------------------------------------
+ *  2023-06-05                         최초작성
+ *******************************************************************************/
+DECLARE
+    d_return     VARCHAR(4000);
+
+BEGIN
+
+    d_return := NULL;
+
+   SELECT CASE P_OPT_NUM WHEN  1
+                         THEN C.OPT_VAL_CTN1
+                         WHEN  2
+                         THEN C.OPT_VAL_CTN2
+                         WHEN  3
+                         THEN C.OPT_VAL_CTN3
+                         WHEN  4
+                         THEN C.OPT_VAL_CTN4
+                         WHEN  5
+                         THEN C.OPT_VAL_CTN5
+                         WHEN  6
+                         THEN C.OPT_VAL_CTN6
+                         WHEN  7
+                         THEN C.OPT_VAL_CTN7
+                         WHEN  8
+                         THEN C.OPT_VAL_CTN8
+                         WHEN  9
+                         THEN C.OPT_VAL_CTN9
+                         WHEN  10
+                         THEN C.OPT_VAL_CTN10
+                         WHEN  11
+                         THEN C.OPT_VAL_CTN11
+                         WHEN  12
+                         THEN C.OPT_VAL_CTN12
+                         WHEN  13
+                         THEN C.OPT_VAL_CTN13
+                         WHEN  14
+                         THEN C.OPT_VAL_CTN14
+                         WHEN  15
+                         THEN C.OPT_VAL_CTN15
+                         ELSE NULL
+             END
+     INTO d_return
+     FROM TB_RPJTE_CMN_GR_C G
+    INNER JOIN TB_RPJTE_CMN_C C
+       ON (G.CMN_GR_CD = C.CMN_GR_CD)
+    WHERE G.CMN_GR_CD = P_GR_CD
+      AND C.CMN_CD = P_CD;
+
+    RETURN d_return;
+
+END;
+$$ language plpgsql;

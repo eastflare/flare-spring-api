@@ -1,0 +1,38 @@
+CREATE OR REPLACE FUNCTION "FN_GET_DEPT_NM" ( P_DEPT_CD IN VARCHAR2, P_LANG_CD IN VARCHAR2 )
+RETURN VARCHAR2
+AS
+/*******************************************************************************
+ * Project      : BLWC
+ * Module       : CMN
+ * Program Name : FN_GET_DEPT_NM
+ * Description  : 부서테이블에서 부서명 조회
+ * Program History
+ *------------------------------------------------------------------------------
+ *  Date    		In Charge   Description
+ *------------------------------------------------------------------------------
+ *  2023-04-30         	                      최초작성
+ *******************************************************************************/
+    d_return     VARCHAR(1000);
+    v_lang_cd    VARCHAR(10);
+
+BEGIN
+
+    d_return := NULL;
+    v_lang_cd := NVL(P_LANG_CD,'KO');
+
+  SELECT
+          CASE WHEN P_LANG_CD = 'ko'                THEN DEPT_NM
+               WHEN P_LANG_CD IN ('zhC','zhT')  THEN DEPT_CNG_NM
+               WHEN P_LANG_CD IN ('en','pl')        THEN DEPT_ENG_NM
+               ELSE DEPT_ENG_NM
+           END AS LANG_DEPT_NM
+      INTO d_return
+      FROM TB_RPJTE_DEPT_M
+     WHERE DEPT_CD = P_DEPT_CD
+  ;
+    RETURN d_return;
+
+EXCEPTION
+    WHEN OTHERS THEN
+    RETURN null;
+END;

@@ -1,0 +1,61 @@
+CREATE OR REPLACE FUNCTION FN_GET_USER_INFO (
+  P_USER_ID IN VARCHAR,
+  P_LANG_CD IN VARCHAR,
+  P_DISP_TYPE IN NUMERIC DEFAULT 1 /* 1:이름( id/직급or 직책/팀), 2:이름(ID) ) */
+)
+/****************************************************************************
+ * Project      : GLWC             			                                *
+ * Module       : CMN                       			                    *
+ * Program Name : FN_GET_USER_INFO                                          *
+ * Description  : 사용자 정보 상세조회                                                                  							*
+ * PROGRAM HISTORY                                                          *
+ *--------------------------------------------------------------------------*
+ * DATE        NAME    DESCRIPTION                                          *
+ *--------------------------------------------------------------------------*
+* 2023-04-30          INITIAL RELEASE                                       *
+****************************************************************************/
+RETURNS VARCHAR
+as $$
+DECLARE
+  V_RETURNVAL VARCHAR(2000);
+BEGIN
+  V_RETURNVAL := '';
+  BEGIN
+    IF (P_DISP_TYPE = 1 ) THEN /*름( id/직급or 직책/팀)*/
+        SELECT
+              CASE WHEN P_LANG_CD = 'ko'               THEN
+            EMP_NM ||'(' || USER_ID || '/'|| DECODE (JPS_CD, NULL, JTI_NM, JPS_NM)   || '/' || D.DEPT_NM  ||')'
+            WHEN P_LANG_CD IN ('zhC','zhT')  THEN
+            EMP_CNG_NM ||'(' || USER_ID ||  '/'|| DECODE (JPS_CD, NULL,JTI_CNG_NM, JPS_CNG_NM) || '/' || D.DEPT_CNG_NM || ')'
+            WHEN P_LANG_CD IN ('en','pl')        THEN
+            EMP_ENG_NM ||'(' || USER_ID ||  '/'|| DECODE (JPS_CD, NULL,JTI_ENG_NM, JPS_ENG_NM)  || '/' || D.DEPT_ENG_NM || ')'
+                  ELSE
+            EMP_ENG_NM ||'(' || USER_ID ||  '/'|| DECODE (JPS_CD, NULL,JTI_ENG_NM, JPS_ENG_NM)  || '/' || D.DEPT_ENG_NM || ')'
+                  END AS USER_INFO
+             INTO V_RETURNVAL
+             FROM TB_RPJTE_EMP_M E
+                  INNER JOIN TB_RPJTE_DEPT_M D ON E.DEPT_CD = D.DEPT_CD
+            WHERE E.USER_ID = P_USER_ID;
+       ELSIF( P_DISP_TYPE = 2) THEN
+        SELECT
+              CASE WHEN P_LANG_CD = 'ko'               THEN
+            EMP_NM ||'(' || USER_ID ||   ')'
+            WHEN P_LANG_CD IN ('zh-CN','zh-TW')  THEN
+            EMP_CNG_NM ||'(' || USER_ID ||  ')'
+            WHEN P_LANG_CD IN ('en','pl')        THEN
+            EMP_ENG_NM ||'(' || USER_ID ||  ')'
+                  ELSE
+            EMP_ENG_NM ||'(' || USER_ID ||  ')'
+                  END AS USER_INFO
+            INTO V_RETURNVAL
+            FROM TB_RPJTE_EMP_M E
+                 INNER JOIN TB_RPJTE_DEPT_M D ON E.DEPT_CD = D.DEPT_CD
+           WHERE E.USER_ID = P_USER_ID;
+     END IF;
+  EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+      V_RETURNVAL := '-';
+      END;
+  RETURN V_RETURNVAL;
+END;
+$$ language plpgsql;

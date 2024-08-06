@@ -1,0 +1,51 @@
+CREATE OR REPLACE FUNCTION "FN_GET_USER_NM" (P_USER_ID_NO IN VARCHAR2, P_LANG_CD IN VARCHAR2, P_FLAG IN VARCHAR2 )
+RETURN VARCHAR2
+AS
+/*******************************************************************************
+ * Project      : GLWC
+ * Module       : CMN
+ * Program Name : FN_GET_EMP_NM
+ * Description  : 임직원 명 조회
+ * Program History
+ *------------------------------------------------------------------------------
+ *  Date    		In Charge   Description
+ *------------------------------------------------------------------------------
+ *  2023-04-30      	                   최초작성
+*******************************************************************************/
+    d_return     VARCHAR(1000);
+    V_LANG_CD    VARCHAR(10) := NVL(P_LANG_CD,'ko');
+
+BEGIN
+    d_return := NULL;
+    BEGIN
+         IF (P_FLAG = 'ID')  THEN  -- USER_ID
+
+           SELECT    
+                 CASE WHEN P_LANG_CD = 'ko'                THEN EMP_NM
+                      WHEN P_LANG_CD IN ('zhC','zhT')  THEN EMP_CNG_NM
+                      WHEN P_LANG_CD IN ('en','pl')        THEN EMP_ENG_NM
+                      ELSE EMP_ENG_NM
+                  END AS LANG_EMP_NM 
+              INTO   d_return
+              FROM   TB_RPJTE_EMP_M E
+             WHERE   E.USER_ID = P_USER_ID_NO;
+
+          ELSIF (P_FLAG = 'NO') THEN -- EMP_NO
+
+            SELECT    
+                 CASE WHEN P_LANG_CD = 'ko'                THEN EMP_NM
+                      WHEN P_LANG_CD IN ('zhC','zhT')  THEN EMP_CNG_NM
+                      WHEN P_LANG_CD IN ('en','pl')        THEN EMP_ENG_NM
+                      ELSE EMP_ENG_NM
+                  END AS LANG_EMP_NM 
+              INTO   d_return
+              FROM   TB_RPJTE_EMP_M E
+             WHERE   E.EMP_NO = P_USER_ID_NO ;
+          END IF;
+
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            NULL;
+    END;
+    RETURN d_return;
+END;
