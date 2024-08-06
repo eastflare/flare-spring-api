@@ -91,7 +91,7 @@ public class ExcelController {
         }
 
         response.setContentType(ExcelConstants.XLSX);
-        response.setHeader("Content-Disposition", "attachment; filename="Data.xlsx"");
+        response.setHeader("Content-Disposition", "attachment; filename=\"Data.xlsx\"");
 
         // file export
         workbook.write(response.getOutputStream());
@@ -127,7 +127,7 @@ public class ExcelController {
         }
 
         response.setContentType(ExcelConstants.XLSX);
-        response.setHeader("Content-Disposition", "attachment; filename=""+ excelConversion.getFileName() +".xlsx"");
+        response.setHeader("Content-Disposition", "attachment; filename=\""+ excelConversion.getFileName() +".xlsx\"");
 
         // export file
         workbook.write(response.getOutputStream());

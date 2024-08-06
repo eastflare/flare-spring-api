@@ -126,7 +126,7 @@ public class FileUploadController {
     public void downloadAllFiles(@Parameter(name = "atchFileGrId") @RequestParam @NotBlank String atchFileGrId , HttpServletResponse response) throws IOException {
         List<FileVO> fileVOs = fileService.findFiles(atchFileGrId);
 
-        response.setHeader("Content-Disposition", "attachment; filename="" + "compressed.zip"+ "";");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + "compressed.zip"+ "\";");
         response.setHeader("Content-Type", "APPLICATION_ZIP");
 
         fileService.responseZipFromAttachments(response.getOutputStream(), fileVOs);

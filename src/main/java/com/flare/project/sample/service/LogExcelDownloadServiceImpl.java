@@ -76,7 +76,7 @@ public class LogExcelDownloadServiceImpl implements LogExcelDownloadService{
 
             response.setCharacterEncoding("UTF-8");
             response.setContentType(ExcelConstants.XLSX);
-            response.setHeader("Content-Disposition", "attachment; filename=""+ URLEncoder.encode(excelConversion.getFileName(),"UTF-8") +".xlsx"");
+            response.setHeader("Content-Disposition", "attachment; filename=\""+ URLEncoder.encode(excelConversion.getFileName(),"UTF-8") +".xlsx\"");
 
             outStream = response.getOutputStream();
             outStream.write(outArray);
@@ -134,7 +134,7 @@ public class LogExcelDownloadServiceImpl implements LogExcelDownloadService{
 
             response.setCharacterEncoding("UTF-8");
             response.setContentType(ExcelConstants.XLSX);
-            response.setHeader("Content-Disposition", "attachment; filename=""+ URLEncoder.encode(excelConversion.getFileName(),"UTF-8") +".xlsx"");
+            response.setHeader("Content-Disposition", "attachment; filename=\""+ URLEncoder.encode(excelConversion.getFileName(),"UTF-8") +".xlsx\"");
 
             outStream = response.getOutputStream();
             outStream.write(outArray);
@@ -192,7 +192,7 @@ public class LogExcelDownloadServiceImpl implements LogExcelDownloadService{
 
             response.setCharacterEncoding("UTF-8");
             response.setContentType(ExcelConstants.XLSX);
-            response.setHeader("Content-Disposition", "attachment; filename=""+ URLEncoder.encode(excelConversion.getFileName(),"UTF-8") +".xlsx"");
+            response.setHeader("Content-Disposition", "attachment; filename=\""+ URLEncoder.encode(excelConversion.getFileName(),"UTF-8") +".xlsx\"");
 
             outStream = response.getOutputStream();
             outStream.write(outArray);
@@ -255,7 +255,7 @@ public class LogExcelDownloadServiceImpl implements LogExcelDownloadService{
 
             response.setCharacterEncoding("UTF-8");
             response.setContentType(ExcelConstants.XLSX);
-            response.setHeader("Content-Disposition", "attachment; filename=""+ URLEncoder.encode(excelConversion.getFileName(),"UTF-8") +".xlsx"");
+            response.setHeader("Content-Disposition", "attachment; filename=\""+ URLEncoder.encode(excelConversion.getFileName(),"UTF-8") +".xlsx\"");
 
             outStream = response.getOutputStream();
             outStream.write(outArray);

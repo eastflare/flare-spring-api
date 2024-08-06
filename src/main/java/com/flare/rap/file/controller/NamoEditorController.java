@@ -74,50 +74,50 @@ public class NamoEditorController {
 
                 if("file".equals(imgKind)){
                     result = "{\n" +
-                            "  "result": "success",\n" +
-                            "  "addmsg": [\n" +
+                            "  \"result\": \"success\",\n" +
+                            "  \"addmsg\": [\n" +
                             "    {\n" +
-                            "      "fileURL": "" + resultPath +"",\n" +
-                            "      "fileTitle": "",\n" +
-                            "      "fileId": "",\n" +
-                            "      "fileClass": "",\n" +
-                            "      "fileKind": "" + imgKind + "",\n" +
-                            "      "fileType": "" + file.getContentType() + "",\n" +
-                            "      "fileSize": ""+ file.getSize() +"",\n" +
-                            "      "editorFrame": ""+ editorFrame +""\n" +
+                            "      \"fileURL\": \"" + resultPath +"\",\n" +
+                            "      \"fileTitle\": \"\",\n" +
+                            "      \"fileId\": \"\",\n" +
+                            "      \"fileClass\": \"\",\n" +
+                            "      \"fileKind\": \"" + imgKind + "\",\n" +
+                            "      \"fileType\": \"" + file.getContentType() + "\",\n" +
+                            "      \"fileSize\": \""+ file.getSize() +"\",\n" +
+                            "      \"editorFrame\": \""+ editorFrame +"\"\n" +
                             "    }\n" +
                             "  ]\n" +
                             "}";
                 } else{
-                    result = "{\n" +
-                            "  "result": "success",\n" +
-                            "  "addmsg": [\n" +
+                        result = "{\n" +
+                            "  \"result\": \"success\",\n" +
+                            "  \"addmsg\": [\n" +
                             "    {\n" +
-                            "      "imageURL": "" + resultPath + "",\n" +
-                            "      "imageTitle": "",\n" +
-                            "      "imageAlt": "",\n" +
-                            "      "imageWidth": "",\n" +
-                            "      "imageWidthUnit": "px",\n" +
-                            "      "imageHeight": "",\n" +
-                            "      "imageHeightUnit": "px",\n" +
-                            "      "imageSize": ""+ file.getSize() +"",\n" +
-                            "      "imageMarginLeft": "",\n" +
-                            "      "imageMarginLeftUnit": "px",\n" +
-                            "      "imageMarginRight": "",\n" +
-                            "      "imageMarginRightUnit": "px",\n" +
-                            "      "imageMarginTop": "",\n" +
-                            "      "imageMarginTopUnit": "px",\n" +
-                            "      "imageMarginBottom": "",\n" +
-                            "      "imageMarginBottomUnit": "px",\n" +
-                            "      "imageAlign": ""+ imageAlign +"",\n" +
-                            "      "imageId": "",\n" +
-                            "      "imageClass": "",\n" +
-                            "      "imageBorder": "0",\n" +
-                            "      "imageKind": ""+ imgKind +"",\n" +
-                            "      "imageOrgPath": ""+file.getOriginalFilename() + "|" + resultPath +"",\n" +
-                            "      "imageOrgWidth": "960",\n" +
-                            "      "imageOrgHeight": "540",\n" +
-                            "      "editorFrame": "" + editorFrame + ""\n" +
+                            "      \"imageURL\": \"" + resultPath + "\",\n" +
+                            "      \"imageTitle\": \"\",\n" +
+                            "      \"imageAlt\": \"\",\n" +
+                            "      \"imageWidth\": \"\",\n" +
+                            "      \"imageWidthUnit\": \"px\",\n" +
+                            "      \"imageHeight\": \"\",\n" +
+                            "      \"imageHeightUnit\": \"px\",\n" +
+                            "      \"imageSize\": \""+ file.getSize() +"\",\n" +
+                            "      \"imageMarginLeft\": \"\",\n" +
+                            "      \"imageMarginLeftUnit\": \"px\",\n" +
+                            "      \"imageMarginRight\": \"\",\n" +
+                            "      \"imageMarginRightUnit\": \"px\",\n" +
+                            "      \"imageMarginTop\": \"\",\n" +
+                            "      \"imageMarginTopUnit\": \"px\",\n" +
+                            "      \"imageMarginBottom\": \"\",\n" +
+                            "      \"imageMarginBottomUnit\": \"px\",\n" +
+                            "      \"imageAlign\": \""+ imageAlign +"\",\n" +
+                            "      \"imageId\": \"\",\n" +
+                            "      \"imageClass\": \"\",\n" +
+                            "      \"imageBorder\": \"0\",\n" +
+                            "      \"imageKind\": \""+ imgKind +"\",\n" +
+                            "      \"imageOrgPath\": \""+file.getOriginalFilename() + "|" + resultPath +"\",\n" +
+                            "      \"imageOrgWidth\": \"960\",\n" +
+                            "      \"imageOrgHeight\": \"540\",\n" +
+                            "      \"editorFrame\": \"" + editorFrame + "\"\n" +
                             "    }\n" +
                             "  ]\n" +
                             "}";
@@ -154,7 +154,7 @@ public class NamoEditorController {
                 BufferedInputStream bis = new BufferedInputStream(fis);
                 OutputStream out = response.getOutputStream()
         ) {
-            response.addHeader("Content-Disposition", "attachment;filename="" + newFileName + """);
+            response.addHeader("Content-Disposition", "attachment;filename=\"" + newFileName + "\"");
             response.setContentLength((int) file.length());
 
             int read = 0;
@@ -188,7 +188,7 @@ public class NamoEditorController {
                 BufferedInputStream bis = new BufferedInputStream(fis);
                 OutputStream out = response.getOutputStream()
         ) {
-            response.addHeader("Content-Disposition", "attachment;filename="" + newFileName + """);
+            response.addHeader("Content-Disposition", "attachment;filename=\"" + newFileName + "\"");
             response.setContentLength((int) file.length());
 
             int read = 0;
