@@ -1,24 +1,20 @@
-package com.flare.rap.log.service;
+package com.lgensol.eswf.log.service;
 
-import org.springframework.stereotype.Service;
+import com.lgensol.eswf.log.model.EmailSendLogVO;
+import com.lgensol.eswf.log.model.IfLogVO;
 
-import com.flare.rap.common.model.PaginationResponseVO;
-import com.flare.rap.log.model.LoginLogRequestVO;
-import com.flare.rap.log.model.LoginLogResponseVO;
-import com.flare.rap.log.repository.LoginLogRepository;
+public interface LogService {
 
-import lombok.RequiredArgsConstructor;
+    void createMenuAccessLog(String mnuId);
 
-@Service
-@RequiredArgsConstructor
-public class LoginLogServiceImpl implements LoginLogService {
-    private final LoginLogRepository loginLogRepository;
+    long createEmailSendLog(EmailSendLogVO emailSendLogVO);
 
-    @Override
-    public PaginationResponseVO< LoginLogResponseVO> findLoginLogs(LoginLogRequestVO condition) {
-        return PaginationResponseVO.< LoginLogResponseVO>builder()
-                .totalCount(loginLogRepository.selectLoginLogListCount(condition))
-                .list(loginLogRepository.selectLoginLogList(condition))
-                .build();
-    }
+    void createIfLog(IfLogVO ifLogVO);
+
+    long findIfLogSeq();
+
+    void createIfLogSend(IfLogVO ifLogVO);
+
+    void modifyIfLogReceive(IfLogVO ifLogVO);
+
 }
