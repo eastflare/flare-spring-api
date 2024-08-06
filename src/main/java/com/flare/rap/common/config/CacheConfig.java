@@ -14,7 +14,7 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.lgensol.eswf.message.model.MessageSimpleVO;
+import com.flare.rap.message.model.MessageSimpleVO;
 
 @Configuration
 @EnableCaching
