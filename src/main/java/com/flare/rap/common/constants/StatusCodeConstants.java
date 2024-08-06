@@ -1,12 +1,12 @@
-package com.flare.rap.common.constants;
+package com.flare.rap.common.constant;
 
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class StatusCodeConstants {
 
-    public static final String SUCCESS = "S";
-    public static final String FAIL = "F";
+    public static final String SUCCESS = "SUCCESS";
+    public static final String FAIL = "FAIL";
     public static final String MANDATORY_PARAM_ERROR = "MANDATORY_PARAM_ERROR";
     public static final String PARAMETER_VALUE_ERROR = "PARAMETER_VALUE_ERROR";
     public static final String DUPLICATED_VALUE_ERROR = "DUPLICATED_VALUE_ERROR";
@@ -20,6 +20,20 @@ public class StatusCodeConstants {
     public static final String USER_NOT_FOUND = "USER_NOT_FOUND";
     public static final String SESSION_EXPIRE = "SESSION_EXPIRE";
     public static final String NOT_AUTHORIZED_EXCEPTION = "NOT_AUTHORIZED_EXCEPTION";
+
+    //Role
+    public static final String DELETION_IMPOSSIBLE = "DELETION_IMPOSSIBLE";
+
+    //Bbs
+    public static final String NOT_EXIST_EXCEPTION = "NOT_EXIST_EXCEPTION";
+
+    //FileUpload
+    public static final String FILE_UPLOAD_FAILED = "FILE_UPLOAD_FAILED";
+    public static final String FILE_DOWNLOAD_FAILED = "FILE_DOWNLOAD_FAILED";
+
+    //TranslatedMessage
+    public static final String MESSAGE_DEPLOY_FAILED = "MESSAGE_DEPLOY_FAILED";
+    public static final String MESSAGE_READ_FAILED = "MESSAGE_READ_FAILED";
 
     //XSS
     public static final String XSS_FORBIDDEN_STRING_INCLUDE = "XSS_FORBIDDEN_STRING_INCLUDE";
