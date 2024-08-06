@@ -1,7 +1,7 @@
-package com.lgensol.eswf.log.service;
+package com.flare.rap.log.service;
 
-import com.lgensol.eswf.log.model.EmailSendLogVO;
-import com.lgensol.eswf.log.model.IfLogVO;
+import com.flare.rap.log.model.EmailSendLogVO;
+import com.flare.rap.log.model.IfLogVO;
 
 public interface LogService {
 
