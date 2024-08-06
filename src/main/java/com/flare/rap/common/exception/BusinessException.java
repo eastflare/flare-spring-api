@@ -1,6 +1,6 @@
-package com.lgensol.eswf.common.exception;
+package com.flare.rap.common.exception;
 
-import com.lgensol.eswf.common.constant.StatusCodeConstants;
+import com.flare.rap.common.constant.StatusCodeConstants;
 
 public class BusinessException extends RuntimeException {
     private static final long serialVersionUID = 1L;
