@@ -65,7 +65,7 @@ BEGIN
            AND CMN_CD = v_timezone  ;
 
     SELECT TO_CHAR(TO_DATE(P_DATETIME, 'YYYYMMDDHH24MISS')
-                +  TO_NUMBER(OPT_VAL_CTN1)/24 * ( CASE WHEN TO_NUMBER(OPT_VAL_CTN1) <  10  THEN 1 ELSE -1 END) , P_FORMAT )
+                +  TO_NUMBER(OPT_VAL_CTN1)/24 * ( CASE WHEN TO_NUMBER(OPT_VAL_CTN1) < 10  THEN 1 ELSE -1 END) , P_FORMAT )
           INTO d_return
           FROM TB_RPJTE_CMN_GR_C   G
                INNER JOIN TB_RPJTE_CMN_C C ON ( G.CMN_GR_CD   = C.CMN_GR_CD)
@@ -92,7 +92,7 @@ BEGIN
               INTO v_eSTime
               FROM DUAL ;
 
-            IF d_return >=  v_sSTime AND  d_return < = v_eSTime  THEN  -- 타임존 적용
+            IF d_return >=  v_sSTime AND  d_return <= v_eSTime  THEN  -- 타임존 적용
                 SELECT TO_CHAR(TO_DATE(d_return,'YYYYMMDDHH24MISS' ) + TO_NUMBER('1')/24  , P_FORMAT )
                   INTO d_return
                   FROM DUAL ;

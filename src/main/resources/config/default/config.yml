@@ -1,16 +1,36 @@
     spring:
       datasource:
         primary:
-          driver-class-name: org.mariadb.jdbc.Driver
-          jdbc-url: ENC(iv6HXw4tWMGB9QMSXDtyczu2NLfMZL/QB1DJo/nm1OxWK7htRYifl9LVUIGIheIIDV14qcFfBOg=)
-          username: ENC(1b76i1pxWZkQ9Pe5+xbIWw==)
-          password: ENC(ELmEmbHgjazLcVUgp4hwAI6c4H/vgE2K)
+          driver-class-name: org.postgresql.Driver
+          jdbc-url: jdbc:postgresql://eastflare.iptime.org:15432/flare
+          username: flare
+          password: 1!DbFlareHome
+    #      driver-class-name: org.mariadb.jdbc.Driver
     #      jdbc-url: jdbc:mariadb://eastflare.iptime.org:3306/flare
     #      username: flare
     #      password: 1!DbFlareHome
 
+    #      spring.datasource.driverClassName=org.postgresql.Driver
+    #      jdbc-url: jdbc:postgresql://eastflare.iptime.org:15432/flare
+    #      username: flare
+    #      password: 1!DbFlareHome
+
+    #The SQL dialect makes Hibernate generate better SQL for the chosen database
+    #spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.PostgreSQLDialect
+    #spring.jpa.properties.hibernate.default_schema = 선택할스키마이름
+
     # jasupt를 이용한 암호화 처리된 jdbc-url/ID/PW 예시, build.gradle 파일에 명시된 -Djasupt.encryptor.password= 갑과
     # 암/복호화 사이트 https://www.devglan.com/online-tools/jasupt-online-encryption-decryption를 이용하여 properties 값을 완성하세요
+      jpa:
+        database-platform: org.hibernate.dialect.PostgreSQLDialect
+        properties:
+          hibernate:
+            format_sql: true
+            implicit_naming_strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+            physical_naming_strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+            hbm2ddl.auto: none
+        open-in-view: false
+        show-sql: true
 
     logging:
       config: classpath:config/default/logback-spring.xml

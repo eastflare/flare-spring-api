@@ -44,7 +44,7 @@ BEGIN
         END IF;
 
             SELECT TO_CHAR ( P_DATETIME
-                   +  TO_NUMERIC(OPT_VAL_CTN1)/24 * ( CASE WHEN TO_NUMERIC(OPT_VAL_CTN1) <  10  THEN 1 ELSE -1 END) , P_FORMAT )
+                   +  TO_NUMERIC(OPT_VAL_CTN1)/24 * ( CASE WHEN TO_NUMERIC(OPT_VAL_CTN1) < 10  THEN 1 ELSE -1 END) , P_FORMAT )
               INTO d_return
               FROM TB_RPJTE_CMN_GR_C   G
                    INNER JOIN TB_RPJTE_CMN_C C ON ( G.CMN_GR_CD   = C.CMN_GR_CD)
@@ -72,7 +72,7 @@ BEGIN
             SELECT TO_CHAR(NEXT_DAY(TRUNC(TO_DATE(v_Year||LPAD(v_optval8,2,'0')||'01' ,'YYYYMMDD')-1),1)+(TO_NUMERIC(v_optval9)-1)*7,'YYYYMMDD')||REPLACE (v_optval10,':','') || '00'
             INTO v_eSTime;
 
-            IF d_return >=  v_sSTime AND  d_return < = v_eSTime  THEN  -- 타임존 적용
+            IF d_return >=  v_sSTime AND  d_return <= v_eSTime  THEN  -- 타임존 적용
                    SELECT TO_CHAR(TO_DATE(d_return,'YYYYMMDDHH24MISS' )  + TO_NUMERIC('1')/24  , P_FORMAT )
                    INTO d_return;
             END IF;
