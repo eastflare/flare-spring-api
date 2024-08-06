@@ -1,13 +1,10 @@
 package com.flare.rap.common.filter;
 
-import com.fasterxml.jackson.core.io.CharacterEscapes;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flare.rap.common.util.HtmlCharacterEscapes;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.server.PathContainer;
@@ -15,20 +12,25 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPatternParser;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flare.rap.common.util.HtmlCharacterEscapes;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class XssReplaceFilter extends OncePerRequestFilter {
 
-    private final List<PathPattern> excludePathList = new ArrayList<PathPattern>();
-    private final ObjectMapper objectMapper;
+    private final List< PathPattern> excludePathList = new ArrayList< >();
+    private ObjectMapper objectMapper;
 
-    public XssReplaceFilter(String[] excludePaths, ObjectMapper objectMapper){
+    public XssReplaceFilter(String[] excludePaths, ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
         PathPatternParser pathPatternParser = new PathPatternParser();
-        for(String excludePath : excludePaths){
+        for(String excludePath : excludePaths) {
             excludePathList.add(pathPatternParser.parse(excludePath));
         }
     }
@@ -38,7 +40,7 @@ public class XssReplaceFilter extends OncePerRequestFilter {
         XssReplaceFilterWrapper xssReplaceFilterWrapper = new XssReplaceFilterWrapper(request);
         String body = IOUtils.toString(xssReplaceFilterWrapper.getReader());
 
-        if(!StringUtils.isBlank(body)){
+        if (!StringUtils.isBlank(body)) {
             objectMapper.getFactory().setCharacterEscapes(new HtmlCharacterEscapes());
             Object replacedJsonObject = objectMapper.readValue(body, Object.class);
 
@@ -48,17 +50,21 @@ public class XssReplaceFilter extends OncePerRequestFilter {
         filterChain.doFilter(xssReplaceFilterWrapper, response);
     }
 
+
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         // 필터를 그냥 통과시키려면 true 를 리턴
         PathContainer parsePath = PathContainer.parsePath(request.getRequestURI());
 
-        for(PathPattern pattern : excludePathList){
-            if(pattern.matches(parsePath)){
+        for(PathPattern pattern : excludePathList) {
+            if(pattern.matches(parsePath) ) {
                 log.debug(String.format("XssReplaceFilter -- ExcludePath is : %s matched requestURI is : %s", pattern.getPatternString(), request.getRequestURI() ));
                 return true;
             }
         }
         return false;
     }
+
+
+
 }

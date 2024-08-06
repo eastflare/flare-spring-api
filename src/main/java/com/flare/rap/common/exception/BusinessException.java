@@ -1,9 +1,8 @@
-package com.flare.rap.common.exception;
+package com.lgensol.eswf.common.exception;
 
-import com.flare.rap.common.constants.StatusCodeConstants;
+import com.lgensol.eswf.common.constant.StatusCodeConstants;
 
 public class BusinessException extends RuntimeException {
-
     private static final long serialVersionUID = 1L;
     private final String message;
     private final String statusCode;
@@ -13,17 +12,25 @@ public class BusinessException extends RuntimeException {
         this.statusCode = statusCode;
     }
 
+    public BusinessException(String message) {
+        this(message, StatusCodeConstants.FAIL);
+    }
+
+    public BusinessException(String message, Throwable cause) {
+        this(message, StatusCodeConstants.FAIL, cause);
+    }
+
     public BusinessException(String message, String statusCode, Throwable cause) {
         super(cause);
         this.message = message;
         this.statusCode = statusCode;
     }
 
-    public BusinessException(String message) { this(message, StatusCodeConstants.FAIL); }
+    public String getMessage() {
+        return this.message;
+    }
 
-    public BusinessException(String message, Throwable cause) { this(message, StatusCodeConstants.FAIL, cause  ); }
-
-    public String getMessage() { return message; }
-
-    public String getStatusCode() { return statusCode;  }
+    public String getStatusCode() {
+        return statusCode;
+    }
 }
