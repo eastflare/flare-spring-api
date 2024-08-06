@@ -26,11 +26,11 @@ public class FilterConfig implements WebMvcConfigurer {
 
     /**
      * XssReplaceFilter 설명
-     * XSS 에 해당하는 문자 ( < , >, \, & 등등)가 포함되어있으면 해당 문자를 Replace(escape) 합니다.
+     * XSS 에 해당하는 문자 ( <, >, \, & 등등)가 포함되어있으면 해당 문자를 Replace(escape) 합니다.
      * 문자 Replace(escape)는 HtmlCharacterEscapes 클래스를 사용합니다.
      * - replace(escape)된 데이터를 다시 조회 할때 아래 조치를 취할 수 있습니다.
      *  예시 ) 제목, 성명 등 XSS 문자열을 허용하지 않은 경우는 replace(escape)된 데이터를 그대로 보여줍니다.
-     *         FE에서 보여주는 방법에 따라 &lt; , <  로 보임.
+     *         FE에서 보여주는 방법에 따라 &lt; , < 로 보임.
      *  예시 ) 웹에디터를 통한 입력일 경우
      *     html 요소를 화면에 끼워넣기 위한 목적으로 입력한 것이므로 replace(escape) 된 데이터를 unescape 해서 FE에 보내야 합니다.
      *     BE Code Sample :
@@ -44,7 +44,7 @@ public class FilterConfig implements WebMvcConfigurer {
      */
 
     @Bean
-    public FilterRegistrationBean< XssReplaceFilter> xssReplaceFilter() {
+    public FilterRegistrationBean<XssReplaceFilter> xssReplaceFilter() {
 
         // 필터적용을 제외할 Path Pattern
         String [] excludePaths ={
@@ -59,7 +59,7 @@ public class FilterConfig implements WebMvcConfigurer {
         String[] totalExcludePaths = this.concatenateStringArrays(excludePaths, xssReplaceExcludePaths);
         XssReplaceFilter xssReplaceFilter = new XssReplaceFilter(totalExcludePaths, objectMapper);
 
-        FilterRegistrationBean< XssReplaceFilter> registrationBean = new FilterRegistrationBean< >();
+        FilterRegistrationBean<XssReplaceFilter> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(xssReplaceFilter);
         registrationBean.addUrlPatterns("/*");
         registrationBean.setOrder(1);
@@ -75,7 +75,7 @@ public class FilterConfig implements WebMvcConfigurer {
      * 이건 사용하지 않습니다.
      */
     @Bean
-    public FilterRegistrationBean< XssBlockFilter> xssBlockFilter() {
+    public FilterRegistrationBean<XssBlockFilter> xssBlockFilter() {
 
         // 필터적용을 제외할 Path Pattern
         String [] excludePaths ={
@@ -90,7 +90,7 @@ public class FilterConfig implements WebMvcConfigurer {
         String[] totalExcludePaths = this.concatenateStringArrays(excludePaths, xssBlockExcludePaths);
         XssBlockFilter xssBlockFilter = new XssBlockFilter(totalExcludePaths, objectMapper);
 
-        FilterRegistrationBean< XssBlockFilter> registrationBean = new FilterRegistrationBean< >();
+        FilterRegistrationBean<XssBlockFilter> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(xssBlockFilter);
         registrationBean.addUrlPatterns("/NOT-YET/**");
         registrationBean.setOrder(2);

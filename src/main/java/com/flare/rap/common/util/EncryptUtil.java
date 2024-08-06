@@ -50,9 +50,9 @@ public final class EncryptUtil {
     private static byte[] generateKey(String key) {
         byte[] desKey = new byte[16];
         byte[] bkey = key.getBytes();
-        if (bkey.length <  desKey.length) {
+        if (bkey.length < desKey.length) {
             System.arraycopy(bkey, 0, desKey, 0, bkey.length);
-            for (int i = bkey.length; i <  desKey.length; i++)
+            for (int i = bkey.length; i < desKey.length; i++)
                 desKey[i] = 0;
         } else {
             System.arraycopy(bkey, 0, desKey, 0, desKey.length);
@@ -91,10 +91,10 @@ public final class EncryptUtil {
             String cookieValue = null;
             if (cookieHeader != null) {
                 String[] cookiesRaw = cookieHeader.split("; ");
-                for (int i = 0; i <  cookiesRaw.length; i++) {
+                for (int i = 0; i < cookiesRaw.length; i++) {
                     String[] parts = cookiesRaw[i].split("=", 2);
                     String value = (parts.length > 1) ? parts[1] : "";
-                    if (value.length() >= 2 && value.startsWith(""") && value.endsWith("""))
+                    if (value.length() >= 2 && value.startsWith("\"") && value.endsWith("\""))
                         value = value.substring(1, value.length() - 1);
                     if (parts[0].equals(cookieName)) {
                         cookieValue = URLDecoder.decode(value, StandardCharsets.UTF_8);

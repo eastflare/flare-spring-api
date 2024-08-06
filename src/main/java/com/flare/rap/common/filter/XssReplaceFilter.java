@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class XssReplaceFilter extends OncePerRequestFilter {
 
-    private final List< PathPattern> excludePathList = new ArrayList< >();
+    private final List<PathPattern> excludePathList = new ArrayList<>();
     private ObjectMapper objectMapper;
 
     public XssReplaceFilter(String[] excludePaths, ObjectMapper objectMapper) {

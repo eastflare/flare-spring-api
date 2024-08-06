@@ -33,13 +33,13 @@ public final class ValidateUtil {
     private static final String TELEPHONE_NOT_EXIST_MIDDLE_NUMBER_PATTERN = "1[56][0-9]{2}";
     private static final String PHONE_BACK_NUMBER_PATTERN = "\\d{4}";
     private static final Pattern TAG_REG = Pattern.compile(
-            "< ((/?)([a-zA-Z]+)([^< >]*)(\\s*/?))>?", 106);
+            "<((/?)([a-zA-Z]+)([^<>]*)(\\s*/?))>?", 106);
 
     private static final Pattern EVENT_REG = Pattern.compile(
             "(\\s+)([a-zA-Z]+)(.*?)(=)(.+?[\\(|\\#].+?)", 106);
 
     private static final Pattern KISA_REG = Pattern.compile(
-            "< ((/?)([a-zA-Z]+)([^< >]*)(\\s*/?))>?", 106);
+            "<((/?)([a-zA-Z]+)([^<>]*)(\\s*/?))>?", 106);
 
     public static final String[] ALLTAGS = { "a", "abbr", "acronym", "address",
             "applet", "area", "b", "base", "basefont", "bdo", "big",
@@ -126,13 +126,13 @@ public final class ValidateUtil {
             "string", "vbscript", "void"};
 
     private static final Pattern[] scriptPatterns = new Pattern[] {
-            Pattern.compile("< script>(.*?)< /script>", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("<script>(.*?)</script>", Pattern.CASE_INSENSITIVE),
             Pattern.compile("src[\r\n]*=[\r\n]*\\\'(.*?)\\\'",
                     Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
-            Pattern.compile("src[\r\n]*=[\r\n]*\\"(.*?)\\"",
+            Pattern.compile("src[\r\n]*=[\r\n]*\\\"(.*?)\\\"",
                     Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
-            Pattern.compile("< /script>", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("< script(.*?)>", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
+            Pattern.compile("</script>", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("<script(.*?)>", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
             Pattern.compile("eval\\((.*?)\\)", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
             Pattern.compile("expression\\((.*?)\\)", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
             Pattern.compile("javascript:", Pattern.CASE_INSENSITIVE),
@@ -140,17 +140,17 @@ public final class ValidateUtil {
             Pattern.compile("onload(.*?)=", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL)
     };
 
-    public static final List< String> TAGLIST = Arrays.asList(ALLTAGS);
+    public static final List<String> TAGLIST = Arrays.asList(ALLTAGS);
 
-    public static final List< String> EVENTLIST = Arrays.asList(ALLEVENTS);
+    public static final List<String> EVENTLIST = Arrays.asList(ALLEVENTS);
 
-    public static final List< String> KISAXSSLIST = Arrays.asList(KISA_XSS);
+    public static final List<String> KISAXSSLIST = Arrays.asList(KISA_XSS);
     // editor 용
-    public static final List< String> EDITOR_TAGLIST = Arrays.asList(EDITOR_TAGS);
+    public static final List<String> EDITOR_TAGLIST = Arrays.asList(EDITOR_TAGS);
 
-    public static final List< String> EDITOR_EVENTLIST = Arrays.asList(EDITOR_EVENTS);
+    public static final List<String> EDITOR_EVENTLIST = Arrays.asList(EDITOR_EVENTS);
 
-    public static final List< String> EDITOR_KISAXSSLIST = Arrays.asList(EDITOR_KISA_XSS);
+    public static final List<String> EDITOR_KISAXSSLIST = Arrays.asList(EDITOR_KISA_XSS);
 
 
     public static boolean checkXSS(String value) {
@@ -224,9 +224,9 @@ public final class ValidateUtil {
     public static boolean checkSqlInjection(String value) {
         if ((value == null) || (value.length() == 0))
             return true;
-        String str = "#,--,;,'='',&quot;=&quot;&quot;,\\=\\\\,%,'',< ,>,(,)";
+        String str = "#,--,;,'='',&quot;=&quot;&quot;,\\=\\\\,%,'',<,>,(,)";
         String[] pattern = str.split("\\,");
-        for (int idx = 0; idx <  pattern.length; ++idx) {
+        for (int idx = 0; idx < pattern.length; ++idx) {
             if (value.indexOf(pattern[idx]) > -1)
                 return false;
         }
@@ -331,14 +331,14 @@ public final class ValidateUtil {
 
         int count = 0;
 
-        for (int i = 0; i <  frontAddress.length(); ++i) {
-            if ((frontAddress.charAt(i) < = 'z')
+        for (int i = 0; i < frontAddress.length(); ++i) {
+            if ((frontAddress.charAt(i) <= 'z')
                     && (frontAddress.charAt(i) >= 'a'))
                 continue;
-            if ((frontAddress.charAt(i) < = 'Z')
+            if ((frontAddress.charAt(i) <= 'Z')
                     && (frontAddress.charAt(i) >= 'A'))
                 continue;
-            if ((frontAddress.charAt(i) < = '9')
+            if ((frontAddress.charAt(i) <= '9')
                     && (frontAddress.charAt(i) >= '0'))
                 continue;
             if ((frontAddress.charAt(i) != '-')
@@ -347,8 +347,8 @@ public final class ValidateUtil {
             }
         }
 
-        for (int i = 0; i <  domainAddress.length(); ++i) {
-            if ((domainAddress.charAt(i) < = 'z')
+        for (int i = 0; i < domainAddress.length(); ++i) {
+            if ((domainAddress.charAt(i) <= 'z')
                     && (domainAddress.charAt(i) >= 'a'))
                 continue;
             if (domainAddress.charAt(i) == '.') {
@@ -418,7 +418,7 @@ public final class ValidateUtil {
             return false;
 
         int sum = 0;
-        for (int inx = 0; inx <  size; ++inx) {
+        for (int inx = 0; inx < size; ++inx) {
             sum += Character.getNumericValue(characters[inx])
                     * multiplicand[inx];
         }
@@ -466,7 +466,7 @@ public final class ValidateUtil {
                     .getNumericValue(frn.charAt(8))) % 2 != 0)
                 return false;
 
-            if ((Character.getNumericValue(frn.charAt(11)) <  6)
+            if ((Character.getNumericValue(frn.charAt(11)) < 6)
                     || (Character.getNumericValue(frn.charAt(11)) > 9))
                 return false;
 
@@ -478,7 +478,7 @@ public final class ValidateUtil {
                 return false;
 
             int sum = 0;
-            for (int inx = 0; inx <  size; ++inx) {
+            for (int inx = 0; inx < size; ++inx) {
                 sum += Character.getNumericValue(characters[inx])
                         * multiplicand[inx];
             }
@@ -520,7 +520,7 @@ public final class ValidateUtil {
             char[] characters = crn.toCharArray();
 
             int sum = 0;
-            for (int inx = 0; inx <  12; ++inx) {
+            for (int inx = 0; inx < 12; ++inx) {
                 sum += Character.getNumericValue(characters[inx]) * (inx % 2 + 1);
             }
 
@@ -565,7 +565,7 @@ public final class ValidateUtil {
                 return false;
 
             int sum = 0;
-            for (int inx = 0; inx <  size; ++inx) {
+            for (int inx = 0; inx < size; ++inx) {
                 sum += Character.getNumericValue(characters[inx])
                         * multiplicand[inx];
             }
@@ -622,7 +622,7 @@ public final class ValidateUtil {
             if (path == null)
                 return true;
 
-            return ((path.indexOf("..\") == -1) && (path.indexOf("../") == -1));
+            return ((path.indexOf("..\\") == -1) && (path.indexOf("../") == -1));
         }
 
         public static boolean checkNumeric(String value) {
@@ -708,10 +708,10 @@ public final class ValidateUtil {
                 return true;
             }
             if (str instanceof Map) {
-                return ((Map< ?, ?>) str).isEmpty();
+                return ((Map<?, ?>) str).isEmpty();
             }
             if (str instanceof List) {
-                return ((List< ?>) str).isEmpty();
+                return ((List<?>) str).isEmpty();
             }
             if (str instanceof Object[]) {
                 return (((Object[]) str).length == 0);

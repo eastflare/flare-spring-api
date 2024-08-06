@@ -64,7 +64,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
             String queryString = ValidateUtil.charUnescape(StringUtil.nullConvert(request.getQueryString()));
             log.debug("The user who attempted to access the account is {} - {} ( {} , {} ), API URL : {} - {}{}{} ", userSession.getUserId() , userSession.getEmpNo(), userSession.getLangCd(), userSession.getTimeZoneCd(), httpMthdCd, apiUrl, request.getQueryString() == null ? "":"?", queryString );
 
-            List< String> roleCodes = userSession.getRoleCodes();
+            List<String> roleCodes = userSession.getRoleCodes();
 
             if(ValidateUtil.isEmpty(roleCodes) || !apiUrlService.checkAccessibleApiUrlsByRoleCodes(apiUrl, httpMthdCd, roleCodes)){
                 throw new BusinessException("Inaccessible Api, Access url is " + uurl, StatusCodeConstants.NOT_AUTHORIZED_EXCEPTION);

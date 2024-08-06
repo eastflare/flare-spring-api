@@ -78,11 +78,11 @@ public class XssReplaceFilterWrapper extends HttpServletRequestWrapper {
 
 
     @Override
-    public Map< String, String[]> getParameterMap() {
-        Map< String, String[]> params = super.getParameterMap();
+    public Map<String, String[]> getParameterMap() {
+        Map<String, String[]> params = super.getParameterMap();
         if(params != null) {
             params.forEach((key, value) -> {
-                for(int i=0; i< value.length; i++) {
+                for(int i=0; i<value.length; i++) {
                     value[i] = replaceXSS(value[i]);
                 }
             });
@@ -95,7 +95,7 @@ public class XssReplaceFilterWrapper extends HttpServletRequestWrapper {
     public String[] getParameterValues(String parameter) {
         String[] params = super.getParameterValues(parameter);
         if(params != null) {
-            for(int i=0; i< params.length; i++) {
+            for(int i=0; i<params.length; i++) {
                 params[i] = replaceXSS(params[i]);
             }
         }

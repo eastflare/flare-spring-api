@@ -35,15 +35,15 @@ public class InterceptorConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        List< String> urlPatterns = Arrays.asList("/**");
+        List<String> urlPatterns = Arrays.asList("/**");
 
-        List< String> excludeSsoPatterns = this.getSsoCookieExcludePaths();
+        List<String> excludeSsoPatterns = this.getSsoCookieExcludePaths();
         registry.addInterceptor(ssoCookieInterceptor)
                 .addPathPatterns(urlPatterns)
                 .excludePathPatterns(excludeSsoPatterns);
 
 
-        List< String> excludeAuthPatterns = this.getAuthenticationExcludePaths();
+        List<String> excludeAuthPatterns = this.getAuthenticationExcludePaths();
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns(urlPatterns)
                 .excludePathPatterns(excludeAuthPatterns);
@@ -53,9 +53,9 @@ public class InterceptorConfig implements WebMvcConfigurer {
         registry.addInterceptor(localeInterceptor);
     }
 
-    private List< String> getSsoCookieExcludePaths(){
-        List< String> excludeSsoPatterns =
-                new ArrayList< >(Arrays.asList(
+    private List<String> getSsoCookieExcludePaths(){
+        List<String> excludeSsoPatterns =
+                new ArrayList<>(Arrays.asList(
                         "/v1/health", "/error",
                         "/swagger-ui/**", "/swagger-resources/**",
                         "/v3/api-docs/**",
@@ -70,9 +70,9 @@ public class InterceptorConfig implements WebMvcConfigurer {
         return excludeSsoPatterns;
     }
 
-    private List< String> getAuthenticationExcludePaths(){
-        List< String> excludeAuthPatterns =
-                new ArrayList< >(Arrays.asList(
+    private List<String> getAuthenticationExcludePaths(){
+        List<String> excludeAuthPatterns =
+                new ArrayList<>(Arrays.asList(
                         "/v1/health", "/error",
                         "/swagger-ui/**", "/swagger-resources/**",
                         "/v3/api-docs/**",

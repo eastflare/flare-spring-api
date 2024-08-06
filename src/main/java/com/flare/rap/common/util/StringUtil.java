@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class StringUtil {
     /**
-     * 빈 문자열 < code>""< /code>.
+     * 빈 문자열 <code>""</code>.
      */
     public static final String EMPTY = "";
 
@@ -59,20 +59,20 @@ public class StringUtil {
     }
 
     /**
-     * < p>
+     * <p>
      * String이 비었거나("") 혹은 null 인지 검증한다.
-     * < /p>
+     * </p>
      *
-     * < pre>
+     * <pre>
      *  StringUtil.isEmpty(null)      = true
      *  StringUtil.isEmpty(&quot;&quot;)        = true
      *  StringUtil.isEmpty(&quot; &quot;)       = false
      *  StringUtil.isEmpty(&quot;bob&quot;)     = false
      *  StringUtil.isEmpty(&quot;  bob  &quot;) = false
-     * < /pre>
+     * </pre>
      * @param str
      *        - 체크 대상 스트링오브젝트이며 null을 허용함
-     * @return < code>true< /code> - 입력받은 String 이 빈 문자열
+     * @return <code>true</code> - 입력받은 String 이 빈 문자열
      *         또는 null인 경우
      */
     public static boolean isEmpty(String str) {
@@ -80,14 +80,14 @@ public class StringUtil {
     }
 
     /**
-     * < p>
+     * <p>
      * 오라클의 decode 함수와 동일한 기능을 가진 메서드이다.
-     * < code>sourStr< /code>과 < code>compareStr< /code>의
-     * 값이 같으면 < code>returStr< /code>을 반환하며, 다르면
-     * < code>defaultStr< /code>을 반환한다.
-     * < /p>
+     * <code>sourStr</code>과 <code>compareStr</code>의
+     * 값이 같으면 <code>returStr</code>을 반환하며, 다르면
+     * <code>defaultStr</code>을 반환한다.
+     * </p>
      *
-     * < pre>
+     * <pre>
      * StringUtil.decode(null, null, &quot;foo&quot;, &quot;bar&quot;)= &quot;foo&quot;
      * StringUtil.decode(&quot;&quot;, null, &quot;foo&quot;, &quot;bar&quot;) = &quot;bar&quot;
      * StringUtil.decode(null, &quot;&quot;, &quot;foo&quot;, &quot;bar&quot;) = &quot;bar&quot;
@@ -95,7 +95,7 @@ public class StringUtil {
      * StringUtil.decode(&quot;하이&quot;, &quot;하이  &quot;, &quot;foo&quot;, null) = null
      * StringUtil.decode(&quot;하이&quot;, &quot;하이&quot;, &quot;foo&quot;, &quot;bar&quot;) = &quot;foo&quot;
      * StringUtil.decode(&quot;하이&quot;, &quot;하이  &quot;, &quot;foo&quot;, &quot;bar&quot;) = &quot;bar&quot;
-     * < /pre>
+     * </pre>
      * @param sourceStr
      *        비교할 문자열
      * @param compareStr
@@ -105,7 +105,7 @@ public class StringUtil {
      * @param defaultStr
      *        sourceStr와 compareStr의 값이 다를 때 반환할 문자열
      * @return sourceStr과 compareStr의 값이 동일(equal)할 때
-     *         returnStr을 반환하며, < br/>
+     *         returnStr을 반환하며, <br/>
      *         다르면 defaultStr을 반환한다.
      */
     public static String decode(String sourceStr, String compareStr,
@@ -126,21 +126,21 @@ public class StringUtil {
     }
 
     /**
-     * < p>
+     * <p>
      * 오라클의 decode 함수와 동일한 기능을 가진 메서드이다.
-     * < code>sourStr< /code>과 < code>compareStr< /code>의
-     * 값이 같으면 < code>returStr< /code>을 반환하며, 다르면
-     * < code>sourceStr< /code>을 반환한다.
-     * < /p>
+     * <code>sourStr</code>과 <code>compareStr</code>의
+     * 값이 같으면 <code>returStr</code>을 반환하며, 다르면
+     * <code>sourceStr</code>을 반환한다.
+     * </p>
      *
-     * < pre>
+     * <pre>
      * StringUtil.decode(null, null, &quot;foo&quot;) = &quot;foo&quot;
      * StringUtil.decode(&quot;&quot;, null, &quot;foo&quot;) = &quot;&quot;
      * StringUtil.decode(null, &quot;&quot;, &quot;foo&quot;) = null
      * StringUtil.decode(&quot;하이&quot;, &quot;하이&quot;, &quot;foo&quot;) = &quot;foo&quot;
      * StringUtil.decode(&quot;하이&quot;, &quot;하이 &quot;, &quot;foo&quot;) = &quot;하이&quot;
      * StringUtil.decode(&quot;하이&quot;, &quot;바이&quot;, &quot;foo&quot;) = &quot;하이&quot;
-     * < /pre>
+     * </pre>
      * @param sourceStr
      *        비교할 문자열
      * @param compareStr
@@ -148,7 +148,7 @@ public class StringUtil {
      * @param returnStr
      *        sourceStr와 compareStr의 값이 같을 때 반환할 문자열
      * @return sourceStr과 compareStr의 값이 동일(equal)할 때
-     *         returnStr을 반환하며, < br/>
+     *         returnStr을 반환하며, <br/>
      *         다르면 sourceStr을 반환한다.
      */
     public static String decode(String sourceStr, String compareStr,
@@ -171,11 +171,11 @@ public class StringUtil {
     }
 
     /**
-     *< pre>
+     *<pre>
      * 인자로 받은 String이 null일 경우 &quot;&quot;로 리턴한다.
      * &#064;param src null값일 가능성이 있는 String 값.
      * &#064;return 만약 String이 null 값일 경우 &quot;&quot;로 바꾼 String 값.
-     *< /pre>
+     *</pre>
      */
     public static String nullConvert(Object src) {
         if (src != null && src instanceof BigDecimal) {
@@ -189,11 +189,11 @@ public class StringUtil {
     }
 
     /**
-     *< pre>
+     *<pre>
      * 인자로 받은 String이 null일 경우 &quot;&quot;로 리턴한다.
      * &#064;param src null값일 가능성이 있는 String 값.
      * &#064;return 만약 String이 null 값일 경우 &quot;&quot;로 바꾼 String 값.
-     *< /pre>
+     *</pre>
      */
     public static String nullConvert(String src) {
 
@@ -205,11 +205,11 @@ public class StringUtil {
     }
 
     /**
-     *< pre>
+     *<pre>
      * 인자로 받은 String이 null일 경우 &quot;0&quot;로 리턴한다.
      * &#064;param src null값일 가능성이 있는 String 값.
      * &#064;return 만약 String이 null 값일 경우 &quot;0&quot;로 바꾼 String 값.
-     *< /pre>
+     *</pre>
      */
     public static int zeroConvert(Object src) {
 
@@ -220,11 +220,11 @@ public class StringUtil {
     }
 
     /**
-     *< pre>
+     *<pre>
      * 인자로 받은 String이 null일 경우 &quot;&quot;로 리턴한다.
      * &#064;param src null값일 가능성이 있는 String 값.
      * &#064;return 만약 String이 null 값일 경우 &quot;&quot;로 바꾼 String 값.
-     *< /pre>
+     *</pre>
      */
     public static int zeroConvert(String src) {
 
@@ -236,22 +236,22 @@ public class StringUtil {
     }
 
     /**
-     * < p>
+     * <p>
      * 문자열에서 {@link Character#isWhitespace(char)}에 정의된
      * 모든 공백문자를 제거한다.
-     * < /p>
+     * </p>
      *
-     * < pre>
+     * <pre>
      * StringUtil.removeWhitespace(null)         = null
      * StringUtil.removeWhitespace(&quot;&quot;)           = &quot;&quot;
      * StringUtil.removeWhitespace(&quot;abc&quot;)        = &quot;abc&quot;
      * StringUtil.removeWhitespace(&quot;   ab  c  &quot;) = &quot;abc&quot;
-     * < /pre>
+     * </pre>
      * @param str
      *        the String to delete whitespace from, may
      *        be null
      * @return the String without whitespaces,
-     *         < code>null< /code> if null String input
+     *         <code>null</code> if null String input
      */
     public static String removeWhitespace(String str) {
         if (isEmpty(str)) {
@@ -260,7 +260,7 @@ public class StringUtil {
         int sz = str.length();
         char[] chs = new char[sz];
         int count = 0;
-        for (int i = 0; i <  sz; i++) {
+        for (int i = 0; i <sz; i++) {
             if (!Character.isWhitespace(str.charAt(i))) {
                 chs[count++] = str.charAt(i);
             }
@@ -285,11 +285,11 @@ public class StringUtil {
             char chrBuff;
             int len = strString.length();
 
-            for (int i = 0; i <  len; i++) {
+            for (int i = 0; i <len; i++) {
                 chrBuff = (char) strString.charAt(i);
 
                 switch (chrBuff) {
-                    case '< ':
+                    case '<':
                         strTxt.append("&lt;");
                         break;
                     case '>':
@@ -299,7 +299,7 @@ public class StringUtil {
                         strTxt.append("&quot;");
                         break;
                     case 10:
-                        strTxt.append("< br>");
+                        strTxt.append("<br>");
                         break;
                     case ' ':
                         strTxt.append("&nbsp;");
@@ -322,23 +322,23 @@ public class StringUtil {
     }
 
     /**
-     * < p>
+     * <p>
      * {@link String#toLowerCase()}를 이용하여 소문자로 변환한다.
-     * < /p>
-     * < p>
-     * A < code>null< /code> input String returns
-     * < code>null< /code>.
-     * < /p>
+     * </p>
+     * <p>
+     * A <code>null</code> input String returns
+     * <code>null</code>.
+     * </p>
      *
-     * < pre>
+     * <pre>
      * StringUtil.lowerCase(null)  = null
      * StringUtil.lowerCase(&quot;&quot;)    = &quot;&quot;
      * StringUtil.lowerCase(&quot;aBc&quot;) = &quot;abc&quot;
-     * < /pre>
+     * </pre>
      * @param str
      *        the String to lower case, may be null
      * @return the lower cased String,
-     *         < code>null< /code> if null String input
+     *         <code>null</code> if null String input
      */
     public static String lowerCase(String str) {
         if (str == null) {
@@ -348,23 +348,23 @@ public class StringUtil {
     }
 
     /**
-         * < p>
+         * <p>
          * {@link String#toUpperCase()}를 이용하여 대문자로 변환한다.
-         * < /p>
-         * < p>
-         * A < code>null< /code> input String returns
-         * < code>null< /code>.
-         * < /p>
+         * </p>
+         * <p>
+         * A <code>null</code> input String returns
+         * <code>null</code>.
+         * </p>
          *
-         * < pre>
+         * <pre>
          * StringUtil.upperCase(null)  = null
          * StringUtil.upperCase(&quot;&quot;)    = &quot;&quot;
          * StringUtil.upperCase(&quot;aBc&quot;) = &quot;ABC&quot;
-         * < /pre>
+         * </pre>
          * @param str
          *        the String to upper case, may be null
          * @return the upper cased String,
-         *         < code>null< /code> if null String input
+         *         <code>null</code> if null String input
          */
         public static String upperCase(String str) {
             if (str == null) {
@@ -391,15 +391,15 @@ public class StringUtil {
             int cnt = 0;
             int index0 = 0;
             int index = source.indexOf(separator);
-            while (index >= 0 && cnt <  (arraylength - 1)) {
+            while (index >= 0 && cnt <(arraylength - 1)) {
                 returnVal[cnt] = source.substring(index0, index);
                 index0 = index + 1;
                 index = source.indexOf(separator, index + 1);
                 cnt++;
             }
             returnVal[cnt] = source.substring(index0);
-            if (cnt <  (arraylength - 1)) {
-                for (int i = cnt + 1; i <  arraylength; i++) {
+            if (cnt <(arraylength - 1)) {
+                for (int i = cnt + 1; i <arraylength; i++) {
                     returnVal[i] = "";
                 }
             }
@@ -441,7 +441,7 @@ public class StringUtil {
                     // 시작문자 및 종료문자 중에서 랜덤 숫자를 발생시킨다.
                     randomInt = rnd.nextInt(endInt + 1);
 
-                } while (randomInt <  startInt); // 입력받은 문자
+                } while (randomInt <startInt); // 입력받은 문자
                 // 'A'(65)보다
                 // 작으면 다시
                 // 랜덤 숫자
@@ -546,9 +546,9 @@ public class StringUtil {
             if (maxLen1 != 0) {
                 if (len > maxLen1) {
                     maxLen1 -= 3;
-                    for (int i = 0; i <  maxLen1; i++) {
+                    for (int i = 0; i <maxLen1; i++) {
                         byte b = bytes[i];
-                        if (b <  0) {
+                        if (b <0) {
                             in2Byte = !in2Byte;
                             in3Byte++;
                         }
@@ -580,13 +580,13 @@ public class StringUtil {
             StringBuilder noHtml = new StringBuilder();
             boolean isTag = false;
 
-            for (int i = 0; i <  html.length(); i++) {
-                if (i < = html.length() - 4 && html.startsWith("&lt;", i)) {
+            for (int i = 0; i <html.length(); i++) {
+                if (i <= html.length() - 4 && html.startsWith("&lt;", i)) {
                     isTag = true;
                     i += 3;
                 }
                 if (!isTag) { noHtml.append(html.charAt(i)); }
-                if (i < = html.length() - 4 && html.startsWith("&gt;", i)) {
+                if (i <= html.length() - 4 && html.startsWith("&gt;", i)) {
                     isTag = false;
                     i += 3;
                 }

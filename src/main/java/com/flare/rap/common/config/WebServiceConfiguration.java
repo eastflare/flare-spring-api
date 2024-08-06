@@ -20,13 +20,13 @@ public class WebServiceConfiguration {
     private final String password;
     private final boolean isEntrust;
     private final boolean isMobileParamEncrypted;
-    private final Map< String, String> urls;
+    private final Map<String, String> urls;
 
     @ConstructorBinding
     public WebServiceConfiguration(String systemKey, String systemId,
                                    String username, String password,
                                    boolean isEntrust, boolean isMobileParamEncrypted,
-                                   Map< String,String> urls){
+                                   Map<String,String> urls){
         this.systemKey = systemKey;
         this.systemId = systemId;
         this.username = username;

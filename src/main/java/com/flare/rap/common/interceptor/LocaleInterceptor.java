@@ -154,7 +154,7 @@ public class LocaleInterceptor implements HandlerInterceptor {
 
     /**
      * Parse the given locale value as coming from a request parameter.
-     * < p>The default implementation calls {@link StringUtils#parseLocale(String)},
+     * <p>The default implementation calls {@link StringUtils#parseLocale(String)},
      * accepting the {@link Locale#toString} format as well as BCP 47 language tags.
      * @param localeValue the locale value to parse
      * @return the corresponding {@code Locale} instance

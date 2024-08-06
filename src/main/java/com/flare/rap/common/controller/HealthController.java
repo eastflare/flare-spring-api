@@ -21,9 +21,9 @@ public class HealthController {
 
     @Operation(summary = "Health Check")
     @GetMapping(produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity< CommonResponseVO> healthCheck() {
+    public ResponseEntity<CommonResponseVO> healthCheck() {
 
-        return new ResponseEntity< >(
+        return new ResponseEntity<>(
                 CommonResponseVO.builder()
                         .successOrNot(CommonConstants.YES_FLAG)
                         .statusCode(StatusCodeConstants.SUCCESS)

@@ -1,4 +1,4 @@
-package com.flare.rap.common.constants;
+package com.flare.rap.common.constant;
 
 import lombok.experimental.UtilityClass;
 

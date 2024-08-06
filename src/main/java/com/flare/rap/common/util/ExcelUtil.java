@@ -44,20 +44,20 @@ public class ExcelUtil {
     }
 
     //엑셀 파일의 데이터 목록 가져오기
-    public static List< Map< String, Object>> getListData(MultipartFile file, int startRowNum, int columnLength){
-        List< Map< String, Object>> excelList = new ArrayList< >();
+    public static List<Map<String, Object>> getListData(MultipartFile file, int startRowNum, int columnLength){
+        List<Map<String, Object>> excelList = new ArrayList<>();
         try{
             OPCPackage opcPackage = OPCPackage.open(file.getInputStream());
             XSSFWorkbook workbook = new XSSFWorkbook(opcPackage);
             XSSFSheet sheet = workbook.getSheetAt(0);
 
-            for(int rowIndex = startRowNum; rowIndex <  sheet.getLastRowNum()+1; rowIndex++){
+            for(int rowIndex = startRowNum; rowIndex < sheet.getLastRowNum()+1; rowIndex++){
                 XSSFRow row = sheet.getRow(rowIndex);
 
                 if(!isEmpty(row.getCell(0).toString())) {
-                    Map< String, Object> map = new HashMap< >();
+                    Map<String, Object> map = new HashMap<>();
 
-                    for(int columnIndex = 0; columnIndex <  columnLength; columnIndex++){
+                    for(int columnIndex = 0; columnIndex < columnLength; columnIndex++){
                         XSSFCell cell = row.getCell(columnIndex);
                         map.put(String.valueOf(columnIndex), getCellValue(cell));
                     }

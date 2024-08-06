@@ -38,7 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 public class XssBlockFilter extends OncePerRequestFilter {
     private final ObjectMapper objectMapper;
 
-    private final List< PathPattern> excludePathList = new ArrayList< PathPattern>();
+    private final List<PathPattern> excludePathList = new ArrayList<PathPattern>();
 
     public XssBlockFilter(String[] excludePaths, ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
@@ -60,7 +60,7 @@ public class XssBlockFilter extends OncePerRequestFilter {
     }
 
     private void validateRequestParameter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
-        Enumeration< String> parameterNames = request.getParameterNames();
+        Enumeration<String> parameterNames = request.getParameterNames();
         while(parameterNames.hasMoreElements()){
             String parameterName = parameterNames.nextElement();
             String parameterValue = request.getParameter(parameterName);
@@ -80,7 +80,7 @@ public class XssBlockFilter extends OncePerRequestFilter {
 
         try {
             HashMap map = objectMapper.readValue(sb.toString(), HashMap.class);
-            Set< String> keys = map.keySet();
+            Set<String> keys = map.keySet();
             for (String key : keys) {
                 if(!ValidateUtil.checkXSS(map.get(key).toString())) {
                     onError(HttpStatus.BAD_REQUEST, response, String.format("XSS Forbidden String include : %s, %s", key, map.get(key).toString()));
@@ -132,7 +132,7 @@ public class XssBlockFilter extends OncePerRequestFilter {
 
     void onError(HttpStatus httpStatus, HttpServletResponse response, String message, Error error) {
 
-        ResponseEntity< CommonResponseVO> errorResponse = new ResponseEntity< >(CommonResponseVO.builder()
+        ResponseEntity<CommonResponseVO> errorResponse = new ResponseEntity<>(CommonResponseVO.builder()
                 .successOrNot(CommonConstants.NO_FLAG)
                 .statusCode(StatusCodeConstants.XSS_FORBIDDEN_STRING_INCLUDE)
                 .data(message)
