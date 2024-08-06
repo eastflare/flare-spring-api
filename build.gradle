@@ -83,6 +83,10 @@ sourceSets {
 	main.java.srcDirs += '$projectDir/build/generated'
 }
 
+bootRun {
+	jvmArgs ['-Djasypt.encryptor.password=ThisisWebFrameworkSecurityKey']
+}
+
 clean {
 	delete file(generated)
 }
