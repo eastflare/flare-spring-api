@@ -41,6 +41,12 @@ dependencies {
 	implementation 'com.sun.mail:jakarta.mail:2.0.1' //email
 	implementation 'org.apache.poi:poi-ooxml:5.2.0'  //excel
 
+	//webService
+	implementation 'org.apache.axis2:axis2-adb:1.8.2'
+	implementation 'org.apache.axis2:axis2-transport-http:1.8.2'
+	implementation 'org.apache.axis2:axis2-transport-local:1.8.2'
+	implementation 'javax.activation:activation:1.1'
+
 	implementation 'com.google.code.gson:gson:2.8.9'
 	implementation 'org.apache.commons:commons-text:1.10.0'
 	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.15.2'
