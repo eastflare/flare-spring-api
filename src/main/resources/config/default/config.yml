@@ -1,10 +1,10 @@
-    spring:
-      datasource:
-        primary:
-          driver-class-name: org.postgresql.Driver
-          jdbc-url: jdbc:postgresql://eastflare.iptime.org:15432/flare
-          username: flare
-          password: 1!DbFlareHome
+spring:
+  datasource:
+    primary:
+      driver-class-name: org.postgresql.Driver
+      jdbc-url: jdbc:postgresql://eastflare.iptime.org:15432/flare
+      username: flare
+      password: 1!DbFlareHome
     #      driver-class-name: org.mariadb.jdbc.Driver
     #      jdbc-url: jdbc:mariadb://eastflare.iptime.org:3306/flare
     #      username: flare
@@ -21,50 +21,66 @@
 
     # jasupt를 이용한 암호화 처리된 jdbc-url/ID/PW 예시, build.gradle 파일에 명시된 -Djasupt.encryptor.password= 갑과
     # 암/복호화 사이트 https://www.devglan.com/online-tools/jasupt-online-encryption-decryption를 이용하여 properties 값을 완성하세요
-      jpa:
-        database-platform: org.hibernate.dialect.PostgreSQLDialect
-        properties:
-          hibernate:
-            format_sql: true
-            implicit_naming_strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
-            physical_naming_strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
-            hbm2ddl.auto: none
-        open-in-view: false
-        show-sql: true
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate:
+        format_sql: true
+        implicit_naming_strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+        physical_naming_strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+        hbm2ddl.auto: none
+    open-in-view: false
+    show-sql: true
 
-    logging:
-      config: classpath:config/default/logback-spring.xml
+logging:
+  config: classpath:config/default/logback-spring.xml
 
-    sso:
-      nls-url: "http://eastflare.iptime.org"
-      toa: "1"
-      sso-domain: ".iptime.org"
-      nls-port: "8001"
-      nd-url: "http://eastflare.iptime.org"
-      server-url: "http://eastflare.iptime.org"
-      server-port: "80"
-    namo:
-      upload-path: "/data/attachFiles/namo"
-      backend-url: "http://eastflare.iptime.org:8180"
-    dropzone:
-      upload-path: resources/static
+sso:
+  nls-url: "http://eastflare.iptime.org"
+  toa: "1"
+  sso-domain: ".iptime.org"
+  nls-port: "8001"
+  nd-url: "http://eastflare.iptime.org"
+  server-url: "http://eastflare.iptime.org"
+  server-port: "80"
+  
+namo:
+  upload-path: "/data/attachFiles/namo"
+  backend-url: "http://eastflare.iptime.org:8180"
+  
+dropzone:
+  upload-path: resources/static
 
-    i18n:
-      message-file-path: "src/main/resources/locale"
-      upload-cache-on-start: true
+i18n:
+  message-file-path: "src/main/resources/locale"
+  upload-cache-on-start: true
 
-    mail:
-      default-form-address: "eastflare@outlook.com"
-      test-to-address: "a@a.net"
+mail:
+  default-form-address: "eastflare@outlook.com"
+  test-to-address: "a@a.net"
 
-    filter:
-      xss-block:
-        exclude-paths: /api/v1/namoFileUpload,/api/v1/approval/mobile/**
-      xss-replace:
-        exclude-paths: /api/v1/namoFileUpload,/api/v1/approval/mobile/**
+filter:
+  xss-block:
+    exclude-paths: /api/v1/namoFileUpload,/api/v1/approval/mobile/**
+  xss-replace:
+    exclude-paths: /api/v1/namoFileUpload,/api/v1/approval/mobile/**
 
-    interceptor:
-      sso-cookie:
-        exclude-paths: /api/v1/namoFileUpload,/api/v1/approval/mobile/**,/api/v1/dev/login
-      authentication:
-        exclude-paths: /api/v1/namoFileUpload,/api/v1/approval/mobile/**,/api/v1/dev/login
+interceptor:
+  sso-cookie:
+    exclude-paths: /api/v1/namoFileUpload,/api/v1/approval/mobile/**,/api/v1/dev/login
+  authentication:
+    exclude-paths: /api/v1/namoFileUpload,/api/v1/approval/mobile/**,/api/v1/dev/login
+
+interface:
+  system-key: SSO에서부여받은시스템키를여기에입력하세요.
+  system-id: 통합결재화합의된시스템아이디를여기에입력하세요.
+  username: SAPPI연동을위한ID
+  password: SAPPI연동을위한PASSWORD
+  is-entrust: false
+  is-mobile-param-encrypted: false
+  urls:
+    hr-department: http://10.94.23.4:50000/XISOAPAdapter/MessageServlet?senderParty=&senderService=LGCY_DEV&receiverParty=&receiverService=&interface=LGCY_LCHC_EA_DEPTBATCH_02_LGCY_SO&interfaceNamespace=http%3A%2F%2Fwww.lgchem.com%2FPI%2FLGC
+    hr-employee: http://10.94.23.4:50000/XISOAPAdapter/MessageServlet?senderParty=&senderService=LGCY_DEV&receiverParty=&receiverService=&interface=LGCY_LCHC_EA_EMPBATCH_02_LGCY_SO&interfaceNamespace=http%3A%2F%2Fwww.lgchem.com%2FPI%2FLGC
+    approval-auto: http://10.94.23.4:50000/XISOAPAdapter/MessageServlet?senderParty=&senderService=LGCY_DEV&receiverParty=&receiverService=&interface=LGCY_APRV_EA_TOTALAPRV_03_SO&interfaceNamespace=http%3A%2F%2Fwww.lgchem.com%2FAPRV
+    approval-list: http://10.94.23.4:50000/XISOAPAdapter/MessageServlet?senderParty=&senderService=LGCY_DEV&receiverParty=&receiverService=&interface=LGCY_APRV_EA_TOTALAPRV_04_SO&interfaceNamespace=http%3A%2F%2Fwww.lgchem.com%2FAPRV
+    approval-entrust: http://10.94.23.4:50000/XISOAPAdapter/MessageServlet?senderParty=&senderService=LGCY_DEV&receiverParty=&receiverService=&interface=LGCY_APRV_EA_TOTALAPRV_06_SO&interfaceNamespace=http%3A%2F%2Fwww.lgchem.com%2FAPRV
