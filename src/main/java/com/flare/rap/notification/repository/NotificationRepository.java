@@ -1,29 +1,40 @@
-package com.flare.rap.notification.service;
+package com.flare.rap.notification.repository;
 
 import java.util.List;
 
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
 import com.flare.rap.approval.model.BaseApprovalLineResponseVO;
-import com.flare.rap.common.model.DmlResponseVO;
 import com.flare.rap.notification.model.NotificationGroupDivisionResponseVO;
 import com.flare.rap.notification.model.NotificationGroupRequestVO;
 import com.flare.rap.notification.model.NotificationGroupResponseVO;
 import com.flare.rap.notification.model.NotificationGroupUserRequestVO;
 import com.flare.rap.notification.model.NotificationGroupUserResponseVO;
+import com.flare.rap.session.model.UserSessionVO;
 
-public interface NotificationService {
+@Mapper
+public interface NotificationRepository {
 
-    List<NotificationGroupResponseVO> findNotificationGroups(String ntdkNm);
+    List<NotificationGroupResponseVO> selectNotificationGroups(String ntdkNm);
 
-    List<NotificationGroupDivisionResponseVO> findNotificationGroupDivisions();
+    List<NotificationGroupDivisionResponseVO> selectNotificationGroupDivisions(@Param("session") UserSessionVO userSession);
 
-    List<NotificationGroupUserResponseVO> findNotificationGroupUsers(Integer ntdkId);
+    List<NotificationGroupUserResponseVO> selectNotificationGroupUsers(@Param("ntdkId") Integer ntdkId, @Param("session") UserSessionVO userSession);
 
-    DmlResponseVO saveNotificationGroups(List<NotificationGroupRequestVO> notificationGroupRequestVO);
+    long selectMaxNtdkId();
 
-    DmlResponseVO modifyDisableNotificationGroup(Integer ntdkId);
+    int insertNotificationGroup(@Param("notification") NotificationGroupRequestVO notificationGroupRequestVO, @Param("session") UserSessionVO userSession);
 
-    DmlResponseVO saveNotificationGroupUsers(List<NotificationGroupUserRequestVO> notificationGroupUserRequestVO);
+    int updateNotificationGroup(@Param("notification") NotificationGroupRequestVO notificationGroupRequestVO, @Param("session") UserSessionVO userSession);
 
-    List<BaseApprovalLineResponseVO> findBaseApprovalNtdkByNtdkId(Integer ntdkId);
+    int insertNotificationGroupUser(@Param("notification") NotificationGroupUserRequestVO notificationGroupUserRequestVO, @Param("session") UserSessionVO userSession);
 
+    int updateNotificationGroupUser(@Param("notification") NotificationGroupUserRequestVO notificationGroupUserRequestVO, @Param("session") UserSessionVO userSession);
+
+    int updateDisableNotificationGroup(@Param("ntdkId") Integer ntdkId, @Param("session") UserSessionVO userSession);
+
+    int updateDisableNotificationGroupUser(@Param("notification") NotificationGroupUserRequestVO notificationGroupUserRequestVO, @Param("session") UserSessionVO userSession);
+
+    List<BaseApprovalLineResponseVO> selectBaseApprovalNtdkByNtdkId(@Param("ntdkId") Integer ntdkId, @Param("session") UserSessionVO userSession);
 }
