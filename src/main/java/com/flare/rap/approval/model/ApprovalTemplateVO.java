@@ -1,6 +1,6 @@
 package com.flare.rap.approval.model;
 
-import javax.persistence.Lob;
+import jakarta.persistence.Lob;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
