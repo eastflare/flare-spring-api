@@ -1,0 +1,6 @@
+insert into TB_RPJTE_DEPT_M (dept_cd, cop_cd, dept_nm, dept_eng_nm, dept_cng_nm, tem_ldr_user_id, uppr_dept_cd, use_yn, data_ins_user_id, data_ins_user_ip, data_ins_dtm, data_upd_user_id, data_upd_user_ip, data_upd_dtm)
+values ('10000000', 'B100', '회사명', '회사명', '회사명', '00000001', '50000000', 'Y', 'ADMIN', '0.0.0.0', to_date('30-06-2023 03:00:19', 'dd-mm-yyyy hh24:mi:ss'), 'ADMIN', '0.0.0.0', to_date('30-06-2023 03:00:19', 'dd-mm-yyyy hh24:mi:ss'));
+insert into TB_RPJTE_DEPT_M (dept_cd, cop_cd, dept_nm, dept_eng_nm, dept_cng_nm, tem_ldr_user_id, uppr_dept_cd, use_yn, data_ins_user_id, data_ins_user_ip, data_ins_dtm, data_upd_user_id, data_upd_user_ip, data_upd_dtm)
+values ('10000001', 'B100', '최상위부서', '최상위부서', '최상위부서', '00000002', '10000000', 'Y', 'ADMIN', '0.0.0.0', to_date('30-06-2023 03:00:18', 'dd-mm-yyyy hh24:mi:ss'), 'ADMIN', '0.0.0.0', to_date('30-06-2023 03:00:18', 'dd-mm-yyyy hh24:mi:ss'));
+insert into TB_RPJTE_DEPT_M (dept_cd, cop_cd, dept_nm, dept_eng_nm, dept_cng_nm, tem_ldr_user_id, uppr_dept_cd, use_yn, data_ins_user_id, data_ins_user_ip, data_ins_dtm, data_upd_user_id, data_upd_user_ip, data_upd_dtm)
+values ('10000002', 'B100', '두번째부서', '두번째부서', '두번째부서', '00000003', '10000001', 'Y', 'ADMIN', '0.0.0.0', to_date('30-06-2023 03:00:19', 'dd-mm-yyyy hh24:mi:ss'), 'ADMIN', '0.0.0.0', to_date('30-06-2023 03:00:19', 'dd-mm-yyyy hh24:mi:ss'));
