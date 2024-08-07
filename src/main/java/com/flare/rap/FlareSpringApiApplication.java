@@ -2,12 +2,25 @@ package com.flare.rap;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.propertiecan;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.cache.annotation.EnableCaching;
 
 @SpringBootApplication
-public class FlareSpringApiApplication {
+@ConfigurationPropertiesScan
+public class FlareSpringApiApplication extends SpringBootServletInitializer {
+    public static void main(String[] args) {
+        try {
+            SpringApplication.run(FlareSpringApiApplication.class, args);
+        } catch (Throwable t) {
+            System.out.println(t.getMessage());
+            t.printStackTrace();
+        }
+    }
 
-	public static void main(String[] args) {
-		SpringApplication.run(FlareSpringApiApplication.class, args);
-	}
-
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        return application.sources(FlareSpringApiApplication.class);
+    }
 }
